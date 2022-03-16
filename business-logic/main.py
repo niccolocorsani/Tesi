@@ -72,7 +72,10 @@ def detect_text(path):
 
     image = vision.Image(content=content)
 
-    response = client.text_detection(image=image)
+    try:
+        response = client.text_detection(image=image)
+    except:
+        pass
 
     texts = response.text_annotations
 
@@ -229,6 +232,7 @@ def compute_corrispondence_from_image_google(folder_path):
         # image.save(path_name.replace('.jpg','') + '_modified.jpg')
 
         ########## Cloruro Ferrico ferroso
+
 
 
 if __name__ == '__main__':
