@@ -1,6 +1,7 @@
 import pytest
 from automl import get_prediction
 
+
 # def test_get_prediction():
 #     with open('../pagine/CPS R4002.jpg', 'rb') as ff:
 #         content = ff.read()
