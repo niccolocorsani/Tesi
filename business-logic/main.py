@@ -6,7 +6,7 @@ import xlsxwriter
 from vison import *
 import time
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "../resources/my-project-1530606888201-96635f2bca42.json"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "../resources/google-auth.json"
 
 
 def draw_rettangle(xy, path, x_1, y_1, x_2, y_2):

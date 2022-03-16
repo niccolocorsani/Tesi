@@ -8,4 +8,4 @@ import pytest
 
 
 def test_compute_corrispondence_from_image_google():
-    compute_corrispondence_from_image_google('../pagine/CPS cloro.jpg')
+    compute_corrispondence_from_image_google('../pagine')

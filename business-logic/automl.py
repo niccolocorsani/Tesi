@@ -6,7 +6,7 @@ from main import draw_rettangle
 
 from PIL import Image
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "../resources/my-project-1530606888201-96635f2bca42.json"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "../resources/google-auth.json"
 
 
 # 'content' is base-64-encoded image data.
