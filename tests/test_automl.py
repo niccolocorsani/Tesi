@@ -1,6 +1,6 @@
 import pytest
 import sys
-sys.path.append('../business-logic/automl')
+sys.path.insert(1,'../business-logic/automl')
 from automl import get_prediction
 
 # def test_get_prediction():
