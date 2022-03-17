@@ -17,6 +17,9 @@ def get_prediction(content, project_id, model_id, path):
     params = {}
     response = prediction_client.predict(name=name, payload=payload, params=params)
 
+
+
+
     payload_response_list = response.payload
 
     img = cv2.imread(path)
