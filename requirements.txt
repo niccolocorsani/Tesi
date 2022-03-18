@@ -12,3 +12,4 @@ setuptools~=57.0.0
 opencv-python~=4.5.5.64
 google-cloud-automl==2.7.2
 openpyxl==3.0.9
+google-cloud-vision==2.7.1
