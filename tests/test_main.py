@@ -1,7 +1,7 @@
 import sys
 
 #sys.path.insert(1, '../business_logic/main')
-sys.path.append("..")
+#sys.path.append("..")
 from main import compute_corrispondence_from_image_google  # affinche funzioni l'import va fatto Mark as source della cartella business_logic
 import pytest
 

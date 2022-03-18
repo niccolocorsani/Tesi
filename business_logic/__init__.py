@@ -1,1 +1,2 @@
-import main
+import business_logic.main
+import business_logic.automl
