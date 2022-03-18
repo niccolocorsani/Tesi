@@ -11,7 +11,7 @@ import time
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "../resources/google-auth.json"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = ROOT_DIR + "/resources/google-auth.json"
 
 
 def draw_rettangle(xy, path, x_1, y_1, x_2, y_2):

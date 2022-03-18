@@ -6,7 +6,9 @@ from business_logic.main import draw_rettangle
 
 from PIL import Image
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "../resources/google-auth.json"
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = ROOT_DIR + "/resources/google-auth.json"
 
 
 # 'content' is base-64-encoded image data.
