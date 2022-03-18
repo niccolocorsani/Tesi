@@ -2,7 +2,7 @@ import os
 import cv2
 from google.cloud import automl_v1beta1  # pip install --upgrade google-cloud-automl
 from termcolor import colored
-from main import draw_rettangle
+from business_logic.main import draw_rettangle
 
 from PIL import Image
 
