@@ -19,7 +19,7 @@ def draw_rettangle(xy, path, x_1, y_1, x_2, y_2):
     image = Image.open(path)
     draw = ImageDraw.Draw(image)
     text = 'Some textttttt'
-    font = ImageFont.truetype('../resources/arial.ttf', 40)
+    font = ImageFont.truetype(ROOT_DIR + '/resources/arial.ttf', 40)
 
     i = 0
     '''
@@ -120,7 +120,7 @@ def detect_text(path):
 # Già posso scrivere i nomi dei nodi e le eventuali unità di misura
 def write_on_excel(nome, nodo_ua, ua_data_type, nome_strumento, dv_path, funzione, unita_di_misura, volume_m3, min_max,
                    prodotto, densita_kg_m3, destinazione, sorgente):
-    workbook = xlsxwriter.Workbook('../output_files/info_altair.xlsx')
+    workbook = xlsxwriter.Workbook(ROOT_DIR + '/output_files/info_altair.xlsx')
     worksheet = workbook.add_worksheet()
     worksheet.write('A2', 'njnbj..')
     worksheet.write('B2', 'Geeks')
@@ -247,4 +247,4 @@ def compute_corrispondence_from_image_google(folder_path):
 
 if __name__ == '__main__':
     # write_on_excel(None, None, None, None, None, None, None, None, None, None, None, None, None)
-    compute_corrispondence_from_image_google('../pagine')
+    compute_corrispondence_from_image_google(ROOT_DIR + '/pagine')

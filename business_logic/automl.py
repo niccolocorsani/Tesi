@@ -34,14 +34,16 @@ def get_prediction(content, project_id, model_id, path):
         x2 = int(element.image_object_detection.bounding_box.normalized_vertices[1].x * img.shape[1])
         y2 = int(element.image_object_detection.bounding_box.normalized_vertices[1].y * img.shape[0])
         pil_img.crop((x1, y1, x2, y2)).show()
-        draw_rettangle(xy=None, x_1=x1, y_1=y1, x_2=x2, y_2=y2, path='../pagine/CPS R4002.jpg')
+        draw_rettangle(xy=None, x_1=x1, y_1=y1, x_2=x2, y_2=y2, path=ROOT_DIR + '/pagine/CPS R4002.jpg')
 
         print(x1, y1, x2, y2)
 
     return response  # waits till request is returned
 
 if __name__ == '__main__':
-    with open('../pagine/CPS R4002.jpg', 'rb') as ff:
+    ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    with open(ROOT_DIR+'/pagine/CPS R4002.jpg', 'rb') as ff:
         content = ff.read()
 
-    get_prediction(content, 30998868314, 'IOD4857481842816712704', '../pagine/CPS R4002.jpg')
+    get_prediction(content, 30998868314, 'IOD4857481842816712704', ROOT_DIR + '/pagine/CPS R4002.jpg')
