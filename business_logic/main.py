@@ -125,17 +125,19 @@ def write_on_excel(nome, nodo_ua, ua_data_type, nome_strumento, dv_path, funzion
 
 
 def compute_corrispondence_from_image_google(folder_path):
-    df = pd.read_excel('../input_files/altair.xlsx', sheet_name="NaOH KOH")
+
+    df = pd.read_excel('../input_files/altair.xlsx'.read(), sheet_name="NaOH KOH")
+
     listNaOH_KOH = df.values.tolist()
-    df = pd.read_excel('../input_files/altair.xlsx', sheet_name="HCl")
+    df = pd.read_excel('../input_files/altair.xlsx'.read(), sheet_name="HCl")
     listHCL = df.values.tolist()
-    df = pd.read_excel('../input_files/altair.xlsx', sheet_name="cloroparaffine (CPS)")
+    df = pd.read_excel('../input_files/altair.xlsx'.read(), sheet_name="cloroparaffine (CPS)")
     list_cloro_paraffine = df.values.tolist()
-    df = pd.read_excel('../input_files/altair.xlsx', sheet_name="ipoclorito di sodio")
+    df = pd.read_excel('../input_files/altair.xlsx'.read(), sheet_name="ipoclorito di sodio")
     list_ipoclorito_di_sodio = df.values.tolist()
-    df = pd.read_excel('../input_files/altair.xlsx', sheet_name="Cloruro Ferrico-Ferroso Pot.le")
+    df = pd.read_excel('../input_files/altair.xlsx'.read(), sheet_name="Cloruro Ferrico-Ferroso Pot.le")
     list_cloruro_ferrico_ferroso = df.values.tolist()
-    df = pd.read_excel('../input_files/altair.xlsx', sheet_name="Cloruro Ferrico std")
+    df = pd.read_excel('../input_files/altair.xlsx'.read(), sheet_name="Cloruro Ferrico std")
     list_cloruro_ferrico_std = df.values.tolist()
     path_name = os.listdir("../pagine")
 
