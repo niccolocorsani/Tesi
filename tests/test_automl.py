@@ -1,7 +1,7 @@
 import pytest
 import sys
-sys.path.insert(1, '../business_logic/automl')
-from automl import get_prediction
+#sys.path.insert(1, '../business_logic/automl')
+from business_logic.automl import get_prediction
 
 # def test_get_prediction():
 #     with open('../pagine/CPS R4002.jpg', 'rb') as ff:
