@@ -137,7 +137,7 @@ def compute_corrispondence_from_image_google(folder_path):
     df = pd.read_excel(ROOT_DIR+'/input_files/altair.xlsx', sheet_name="NaOH KOH")
 
     listNaOH_KOH = df.values.tolist()
-    df = pd.read_excel(ROOT_DIR + '/input_files/altair.xlsx', sheet_name="HCl")
+    df = pd.read_excel(ROOT_DIR + '/input_files/altair.xlsx', sheet_name="HCl") #Necessario qui mettere ROOT_DIR perchè su alcuni sistemi va in bambola mettendo solo ../ che in realtà sarebbe giusto
     listHCL = df.values.tolist()
     df = pd.read_excel(ROOT_DIR + '/input_files/altair.xlsx', sheet_name="cloroparaffine (CPS)")
     list_cloro_paraffine = df.values.tolist()
