@@ -147,7 +147,7 @@ def compute_corrispondence_from_image_google(folder_path):
     list_cloruro_ferrico_ferroso = df.values.tolist()
     df = pd.read_excel(ROOT_DIR + '/input_files/altair.xlsx', sheet_name="Cloruro Ferrico std")
     list_cloruro_ferrico_std = df.values.tolist()
-    path_name = os.listdir("../pagine")
+    path_name = os.listdir(ROOT_DIR + "/pagine")
 
     textImage = ""
 
