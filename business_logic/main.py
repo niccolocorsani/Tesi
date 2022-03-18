@@ -164,7 +164,7 @@ def compute_corrispondence_from_image_google(folder_path):
             if (len(word) < 4): continue
             clean_word = word.replace("\n", "").replace("|", "").replace(",", "").replace(".", "").replace("$", "S")
 
-            image = draw_rettangle(text_vertex_dic.get(word), "../pagine/" + path_names, None, None, None, None)
+            image = draw_rettangle(text_vertex_dic.get(word), ROOT_DIR + "/pagine/" + path_names, None, None, None, None)
 
             for word_list in listNaOH_KOH:
                 if str(word_list[0]) in str(clean_word) and str(word_list[0]) != 'nan':
