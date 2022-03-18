@@ -3,7 +3,7 @@ import os
 from termcolor import colored
 from PIL import ImageFont, ImageDraw
 import xlsxwriter
-from vison import *
+from vision import *
 import time
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "../resources/google-auth.json"
