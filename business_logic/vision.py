@@ -6,11 +6,7 @@ from PIL import Image, ImageFilter
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-def inverte(imagem, name):
-    imagem = (255 - imagem)
-    cv2.imwrite(name, imagem)
-
-
+# Not usefull
 def find_lines(path):
     ### MAKING TEMPLATE WITHOUT HOUGH
 
@@ -135,8 +131,6 @@ def find_lines(path):
     cv2.imshow('res3', res3)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
-
-
 def find_lines2(path):
     import cv2
 
@@ -166,72 +160,34 @@ def find_lines2(path):
     cv2.waitKey()
 
 
-def find_lines_3(path):
-    # Opening the image (R prefixed to string
-    # in order to deal with '\' in paths)
-    image = Image.open(path)
 
-    # Converting the image to grayscale, as edge detection
-    # requires input image to be of mode = Grayscale (L)
-    image = image.convert("L")
-
-    image.save(r"grayscaled.png")
-
-    # Detecting Edges on the Image using the argument ImageFilter.FIND_EDGES
-    image = image.filter(ImageFilter.FIND_EDGES)
-
-    # Aggiunto da me, questa parte serve solo a prendere le coordinate di tutti i punti bianchi
-    # per disegnare e capire dove sono gli edges. L'algoritmo può essere del tipo:
-    # Prima trova i nodi con tensorFlow, croppali e levali dall'immagine. A questo punto l'algoritmo di edge discovery può essere del tipo:
-    # Se pixel è bianco in un range di larghezza minore di N ecc... allora sono davanti a un edge, altrimenti sono davanti a un nodo
-    # La parte di riconoscimento dei nodi forse va fatta con tensorFlow
-    img = cv2.imread(path, 0)
-    edges = cv2.Canny(img, 100, 255)  # --- image containing edges ---
-    inverte(edges, 'LD.jpg')
-    cv2.imshow('my-img', edges)
-    indices = np.where(edges != [0])
-    coordinates = zip(indices[0], indices[1])
-    print(tuple(coordinates))
-    cv2.waitKey()
-    # Aggiunto da me
-
-    # Saving the Image Under the name Edge_Sample.png
-    image.save(r"Edge_Sample.png")
+def save_image_to_edged_black_on_white_background_and_return_vertex_of_white(path_image_input,path_image_output):
 
 
-def detect_shape(path):
-    import cv2
-    from logic.shapedetector import ShapeDetector
+        img = cv2.imread(path_image_input, 0)
+        edges = cv2.Canny(img, 100, 255)  # --- image containing edges ---
+        inverted_image = (255 - edges)   # --- inverte image ---
+        cv2.imwrite(path_image_output, inverted_image)
+        indices = np.where(edges != [0])
+        coordinates = zip(indices[0], indices[1])
+        print(tuple(coordinates))
+        cv2.waitKey()
 
-    image = cv2.imread(path)
 
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-    thresh = cv2.threshold(blurred, 60, 255, cv2.THRESH_BINARY)[1]
 
-    ksize = 5
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (ksize, ksize))
-    thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
 
-    cnts = cv2.findContours(thresh.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-    # ~ cnts = cnts[0] if imutils.is_cv2() else cnts[1]
-    cnts = cnts[1]
-    sd = ShapeDetector()
 
-    for c in cnts:
-        M = cv2.moments(c)
-        if M["m00"] != 0:  # prevent divide by zero
-            cX = int((M["m10"] / M["m00"]))
-            cY = int((M["m01"] / M["m00"]))
-            shape = sd.detect(c)
 
-        c = c.astype("float")
-        # c *= ratio
-        c = c.astype("int")
-        if shape != 'null':
-            cv2.drawContours(image, [c], -1, (0, 255, 0), 2)
-            cv2.putText(image, shape, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX,
-                        0.5, (255, 0, 0), 2)
+if __name__ == '__main__':
 
-    cv2.imshow("Image", image)
-    cv2.waitKey(0)
+
+    save_image_to_edged_black_on_white_background_and_return_vertex_of_white(ROOT_DIR + '/pagine/Schermata 2022-03-20 alle 14.25.17.png'
+                                                      ,ROOT_DIR + '/output_files/black_and_white_image.png')
+
+
+
+    path_name = os.listdir(ROOT_DIR + "/pagine")
+
+
+
+
