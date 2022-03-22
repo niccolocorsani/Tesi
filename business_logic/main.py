@@ -180,5 +180,4 @@ def compute_corrispondence_from_image_google(folder_path):
 
 
 if __name__ == '__main__':
-    # write_on_excel(None, None, None, None, None, None, None, None, None, None, None, None, None)
     compute_corrispondence_from_image_google(ROOT_DIR + '/pagine')
