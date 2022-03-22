@@ -1,18 +1,17 @@
+import os
 import cv2
 import numpy as np
 from PIL import Image, ImageFilter
 
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def inverte(imagem, name):
-    imagem = (255-imagem)
+    imagem = (255 - imagem)
     cv2.imwrite(name, imagem)
 
 
-
-
 def find_lines(path):
-
     ### MAKING TEMPLATE WITHOUT HOUGH
 
     # Read the image and make a copy then transform it to gray colorspace,
@@ -137,6 +136,7 @@ def find_lines(path):
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
+
 def find_lines2(path):
     import cv2
 
@@ -165,8 +165,8 @@ def find_lines2(path):
     cv2.imshow('result', result)
     cv2.waitKey()
 
-def find_lines_3(path):
 
+def find_lines_3(path):
     # Opening the image (R prefixed to string
     # in order to deal with '\' in paths)
     image = Image.open(path)
@@ -175,41 +175,29 @@ def find_lines_3(path):
     # requires input image to be of mode = Grayscale (L)
     image = image.convert("L")
 
-
     image.save(r"grayscaled.png")
 
     # Detecting Edges on the Image using the argument ImageFilter.FIND_EDGES
     image = image.filter(ImageFilter.FIND_EDGES)
 
-
-
-
-
-
-
-
-# Aggiunto da me, questa parte serve solo a prendere le coordinate di tutti i punti bianchi
-# per disegnare e capire dove sono gli edges. L'algoritmo può essere del tipo:
-# Prima trova i nodi con tensorFlow, croppali e levali dall'immagine. A questo punto l'algoritmo di edge discovery può essere del tipo:
-# Se pixel è bianco in un range di larghezza minore di N ecc... allora sono davanti a un edge, altrimenti sono davanti a un nodo
-# La parte di riconoscimento dei nodi forse va fatta con tensorFlow
+    # Aggiunto da me, questa parte serve solo a prendere le coordinate di tutti i punti bianchi
+    # per disegnare e capire dove sono gli edges. L'algoritmo può essere del tipo:
+    # Prima trova i nodi con tensorFlow, croppali e levali dall'immagine. A questo punto l'algoritmo di edge discovery può essere del tipo:
+    # Se pixel è bianco in un range di larghezza minore di N ecc... allora sono davanti a un edge, altrimenti sono davanti a un nodo
+    # La parte di riconoscimento dei nodi forse va fatta con tensorFlow
     img = cv2.imread(path, 0)
     edges = cv2.Canny(img, 100, 255)  # --- image containing edges ---
-    inverte(edges,'LD.jpg')
-    cv2.imshow('my-img',edges)
+    inverte(edges, 'LD.jpg')
+    cv2.imshow('my-img', edges)
     indices = np.where(edges != [0])
     coordinates = zip(indices[0], indices[1])
     print(tuple(coordinates))
     cv2.waitKey()
-# Aggiunto da me
-
-
-
-
-
+    # Aggiunto da me
 
     # Saving the Image Under the name Edge_Sample.png
     image.save(r"Edge_Sample.png")
+
 
 def detect_shape(path):
     import cv2
@@ -241,9 +229,9 @@ def detect_shape(path):
         # c *= ratio
         c = c.astype("int")
         if shape != 'null':
-          cv2.drawContours(image, [c], -1, (0, 255, 0), 2)
-          cv2.putText(image, shape, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX,
-                    0.5, (255, 0, 0), 2)
+            cv2.drawContours(image, [c], -1, (0, 255, 0), 2)
+            cv2.putText(image, shape, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX,
+                        0.5, (255, 0, 0), 2)
 
     cv2.imshow("Image", image)
     cv2.waitKey(0)

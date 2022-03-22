@@ -2,7 +2,7 @@ import os
 import cv2
 from google.cloud import automl_v1beta1  # pip install --upgrade google-cloud-automl
 from termcolor import colored
-from business_logic.main import draw_rettangle
+from business_logic.draw_things import DrawThings
 
 from PIL import Image
 
@@ -13,6 +13,11 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = ROOT_DIR + "/resources/google-aut
 
 # 'content' is base-64-encoded image data.
 def get_prediction(content, project_id, model_id, path):
+
+
+    draw_things = DrawThings()
+
+
     prediction_client = automl_v1beta1.PredictionServiceClient()
     name = 'projects/{}/locations/us-central1/models/{}'.format(project_id, model_id)
     payload = {'image': {'image_bytes': content}}
@@ -34,7 +39,7 @@ def get_prediction(content, project_id, model_id, path):
         x2 = int(element.image_object_detection.bounding_box.normalized_vertices[1].x * img.shape[1])
         y2 = int(element.image_object_detection.bounding_box.normalized_vertices[1].y * img.shape[0])
         pil_img.crop((x1, y1, x2, y2)).show()
-        draw_rettangle(xy=None, x_1=x1, y_1=y1, x_2=x2, y_2=y2, path=ROOT_DIR + '/pagine/CPS R4002.jpg')
+        draw_things.draw_rectangle(xy=None, x_1=x1, y_1=y1, x_2=x2, y_2=y2, path=ROOT_DIR + '/pagine/CPS R4002.jpg')
 
         print(x1, y1, x2, y2)
 

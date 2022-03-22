@@ -1,69 +1,16 @@
 import pandas as pd
-import os
 from termcolor import colored
 from PIL import ImageFont, ImageDraw
 import xlsxwriter
 from business_logic.vision import *
+from business_logic.draw_things import DrawThings
+import logging
 import time
-
 
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = ROOT_DIR + "/resources/google-auth.json"
-
-
-def draw_rettangle(xy, path, x_1, y_1, x_2, y_2):
-    # creating a image object
-    image = Image.open(path)
-    draw = ImageDraw.Draw(image)
-    text = 'Some textttttt'
-    font = ImageFont.truetype(ROOT_DIR + '/resources/arial.ttf', 40)
-
-    i = 0
-    '''
-    coordinates = [(x1, y1), (x2, y2)]
-        (x1, y1)
-            *--------------
-            |             |
-            |             |
-            |             |
-            |             |
-            |             |
-            |             |
-            --------------*
-                          (x2, y2)
-    '''
-
-    # ['(1,55)', '(76,53)', '(77,84)', '(2,86)'], il secondo è x2, y2 il quarto è x1,y1
-
-    try:
-        x1y1 = xy[0].replace('(', '').replace(')', '')
-        x1 = int(x1y1.split(',')[0])
-        y1 = int(x1y1.split(',')[1])
-        x2y2 = xy[2].replace('(', '').replace(')', '')
-        x2 = int(x2y2.split(',')[0])
-        y2 = int(x2y2.split(',')[1])
-
-        draw.rectangle([(x1, y1), (x2, y2)], outline="red")
-
-
-
-
-
-
-    except:
-        print("eccezione")
-        i = i + 1
-
-    try:
-        draw.rectangle([(x_1, y_1), (x_2, y_2)], outline="red")
-    except:
-        i = i + 1
-
-
-    return image
 
 
 def detect_text(path):
@@ -71,25 +18,18 @@ def detect_text(path):
     from google.cloud import vision  # pip install --upgrade google-cloud-vision (se ci sono problemi di import)
     import io
     client = vision.ImageAnnotatorClient()
-
     with io.open(path, 'rb') as image_file:
         content = image_file.read()
 
     image = vision.Image(content=content)
-
     try:
         response = client.text_detection(image=image)
     except:
         pass
-
     texts = response.text_annotations
-
     my_list = []
-
     text_vertex_dic = {}
-
     i = 0
-
     for text in texts:
         if i == 0:
             i = i + 1
@@ -98,7 +38,6 @@ def detect_text(path):
         vertices = (['({},{})'.format(vertex.x, vertex.y)
                      for vertex in text.bounding_poly.vertices])
         text_vertex_dic[text.description] = vertices
-
     if response.error.message:
         raise Exception(
             '{}\nFor more info on error messages, check: '
@@ -107,15 +46,6 @@ def detect_text(path):
 
     return text_vertex_dic
 
-
-# The aim of this function is to compute all corrispondence between text (inside excel shetts) and images text
-# The input parameters are:
-# 1) the folder path, for which all the images inside are analyzed
-# 2) not implemented yet, should be the path of the excel file ecc....
-# This function depends on detect_text(path)
-
-
-########## Cloruro Ferrico ferroso
 
 # Già posso scrivere i nomi dei nodi e le eventuali unità di misura
 def write_on_excel(nome, nodo_ua, ua_data_type, nome_strumento, dv_path, funzione, unita_di_misura, volume_m3, min_max,
@@ -129,15 +59,22 @@ def write_on_excel(nome, nodo_ua, ua_data_type, nome_strumento, dv_path, funzion
     workbook.close()
 
 
+# The aim of this function is to compute all corrispondence between text (inside excel shetts) and images text
+# The input parameters are:
+# 1) the folder path, for which all the images inside are analyzed
+# 2) not implemented yet, should be the path of the excel file ecc....
+# This function depends on detect_text(path)
+########## Cloruro Ferrico ferroso
 def compute_corrispondence_from_image_google(folder_path):
 
 
 
-    print(ROOT_DIR)
-    df = pd.read_excel(ROOT_DIR+'/input_files/altair.xlsx', sheet_name="NaOH KOH")
+    draw_things = DrawThings()
 
+    df = pd.read_excel(ROOT_DIR + '/input_files/altair.xlsx', sheet_name="NaOH KOH")
     listNaOH_KOH = df.values.tolist()
-    df = pd.read_excel(ROOT_DIR + '/input_files/altair.xlsx', sheet_name="HCl") #Necessario qui mettere ROOT_DIR perchè su alcuni sistemi va in bambola mettendo solo ../ che in realtà sarebbe giusto
+    df = pd.read_excel(ROOT_DIR + '/input_files/altair.xlsx',
+                       sheet_name="HCl")  # Necessario qui mettere ROOT_DIR perchè su alcuni sistemi va in bambola mettendo solo ../ che in realtà sarebbe giusto
     listHCL = df.values.tolist()
     df = pd.read_excel(ROOT_DIR + '/input_files/altair.xlsx', sheet_name="cloroparaffine (CPS)")
     list_cloro_paraffine = df.values.tolist()
@@ -149,22 +86,20 @@ def compute_corrispondence_from_image_google(folder_path):
     list_cloruro_ferrico_std = df.values.tolist()
     path_name = os.listdir(ROOT_DIR + "/pagine")
 
-    textImage = ""
-
-    # Read images
     for path_names in path_name:
         print(colored(path_names, 'red'))
         text_vertex_dic = detect_text(folder_path + "/" + path_names)
         all_words_of_image = text_vertex_dic.keys()
         print(colored(all_words_of_image, 'green'))
+        image = Image.open(ROOT_DIR + "/pagine/" + path_names)
 
         # Compare ocr images text with excel text
 
         for word in all_words_of_image:
-            if (len(word) < 4): continue
+            if len(word) < 3: continue
             clean_word = word.replace("\n", "").replace("|", "").replace(",", "").replace(".", "").replace("$", "S")
 
-            image = draw_rettangle(text_vertex_dic.get(word), ROOT_DIR + "/pagine/" + path_names, None, None, None, None)
+            image = draw_things.draw_rectangle(text_vertex_dic.get(word), image)
 
             for word_list in listNaOH_KOH:
                 if str(word_list[0]) in str(clean_word) and str(word_list[0]) != 'nan':
@@ -235,16 +170,22 @@ def compute_corrispondence_from_image_google(folder_path):
                     print('found correspondence of ' + str(word_list[2]) + ' with ' + str(
                         clean_word) + ' in file: ' + path_names + ' and excel sheet list_cloruro_ferrico_ferroso: Nome Strumento')
 
+        ##TODO salva solo l'ultimo rettangolo
+        ## Per risolverlo cambiare la funzione, che non è che a ogni iterazione fa il draw di un solo rettangolo, ma creare una nuova
+        ## funzione dove gli viene passato una lista con tutti i rettangoli e li salva tutti insieme
 
+        path_new_image = ROOT_DIR + '/modified_images/' + path_names.replace('.jpg', '') + '_modified.jpg'
+        try:
 
+            image.save(path_new_image)
 
-
-        # image.save(path_name.replace('.jpg','') + '_modified.jpg')
-
-        ########## Cloruro Ferrico ferroso
-
+        except:
+            rgb_im = image.convert('RGB')
+            rgb_im.save(path_new_image)
 
 
 if __name__ == '__main__':
     # write_on_excel(None, None, None, None, None, None, None, None, None, None, None, None, None)
     compute_corrispondence_from_image_google(ROOT_DIR + '/pagine')
+    xl = pd.ExcelFile(ROOT_DIR + '/input_files/altair.xlsx')
+    print(xl.sheet_names)
