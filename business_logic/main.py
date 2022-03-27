@@ -63,7 +63,7 @@ def write_on_excel(nome, nodo_ua, ua_data_type, nome_strumento, dv_path, funzion
 # 2) not implemented yet, should be the path of the excel file ecc....
 # This function depends on detect_text(path)
 ########## Cloruro Ferrico ferroso
-def compute_corrispondence_from_image_google(folder_path):
+def compute_corrispondence_from_image_google_and_save_files(image_folder_path):
     draw_things = DrawThings()
 
     df = pd.read_excel(ROOT_DIR + '/input_files/altair.xlsx', sheet_name="NaOH KOH")
@@ -83,7 +83,7 @@ def compute_corrispondence_from_image_google(folder_path):
 
     for path_names in path_name:
         print(colored(path_names, 'red'))
-        text_vertex_dic = detect_text(folder_path + "/" + path_names)
+        text_vertex_dic = detect_text(image_folder_path + "/" + path_names)
         all_words_of_image = text_vertex_dic.keys()
       #  print(colored(all_words_of_image, 'green'))
         image = Image.open(ROOT_DIR + "/pagine/" + path_names)
@@ -175,9 +175,10 @@ def compute_corrispondence_from_image_google(folder_path):
             image.save(path_new_image)
 
         except:
+            print('Can t save file because need RGB')
             rgb_im = image.convert('RGB')
             rgb_im.save(path_new_image)
 
 
 if __name__ == '__main__':
-    compute_corrispondence_from_image_google(ROOT_DIR + '/pagine')
+    compute_corrispondence_from_image_google_and_save_files(ROOT_DIR + '/pagine')

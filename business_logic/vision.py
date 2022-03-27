@@ -1,7 +1,11 @@
 import os
+import sys
+import time
 import cv2
 import numpy as np
 from PIL import Image, ImageFilter
+from termcolor import colored
+import matplotlib.pyplot as plt
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -131,6 +135,8 @@ def find_lines(path):
     cv2.imshow('res3', res3)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+
+
 def find_lines2(path):
     import cv2
 
@@ -160,34 +166,60 @@ def find_lines2(path):
     cv2.waitKey()
 
 
+def save_image_to_edged_black_on_white_background_and_return_vertex_of_white(path_image_input, path_image_output):
+    img = cv2.imread(path_image_input,
+                     0)  # Con il flag settato a 0 mi restituisce una matrice con collonne = width e righe = heigth
+    edges = cv2.Canny(img, 100, 255)  # --- image containing edges ---
+    inverted_image = (255 - edges)  # --- inverte image ---
+    cv2.imwrite(path_image_output, inverted_image)
+    indices = np.where(edges != [0])
 
-def save_image_to_edged_black_on_white_background_and_return_vertex_of_white(path_image_input,path_image_output):
+    # ritorna 2 array: il primo contiene
+    # gli indici delle x dove è verificata la condizione,
+    # il secondo contiene gli indici delle y dove è verificata la condizione
+    # b = np.where(a < 4)
+    # print(b)
+    # print("Elements which are <4")
+    # print(a[b])
+
+    coordinates = zip(indices[0], indices[1])
+    # # X e Y sono liste con tutti i valori di x e tutti i valori di y
+    # X, Y = map(list, zip(*coordinates))
+    # plt.scatter(X, Y)
+    # plt.show()
+    return tuple(coordinates)
 
 
-        img = cv2.imread(path_image_input, 0)
-        edges = cv2.Canny(img, 100, 255)  # --- image containing edges ---
-        inverted_image = (255 - edges)   # --- inverte image ---
-        cv2.imwrite(path_image_output, inverted_image)
-        indices = np.where(edges != [0])
-        coordinates = zip(indices[0], indices[1])
-        print(tuple(coordinates))
-        cv2.waitKey()
+def get_pixel_color(x, y):
+    pass
 
 
-
-
+def to_gray_scale(path_image_input, path_image_output):
+    image = Image.open(path_image_input)
+    image = image.convert("L")
+    image.save(path_image_output)
 
 
 if __name__ == '__main__':
 
+    # coordinates = save_image_to_edged_black_on_white_background_and_return_vertex_of_white(
+    #     ROOT_DIR + '/bianco_nero_con_giallo_e_blu.jpg'
+    #     , ROOT_DIR + '/output_files/black_and_white_image.png')
 
-    save_image_to_edged_black_on_white_background_and_return_vertex_of_white(ROOT_DIR + '/pagine/Schermata 2022-03-20 alle 14.25.17.png'
-                                                      ,ROOT_DIR + '/output_files/black_and_white_image.png')
+    image = cv2.imread(ROOT_DIR + '/bianco_nero_con_giallo_e_blu.jpg')
 
-
-
-    path_name = os.listdir(ROOT_DIR + "/pagine")
-
-
+    width, height, channel = image.shape
 
 
+
+
+    # 1, 49, 248
+ ##TODO finire funzione in grado di trovare l'rgb associato a ciascun pixel
+    for i in range(0, width):
+        for j in range(0, height):
+            for x in range(0, 3):
+                sys.stdout.write(str(image[i][j][x])+ ' ')
+
+            #    if image[i][j] == [248, 49]: print('o')
+
+    print('fine')

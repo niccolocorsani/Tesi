@@ -3,7 +3,6 @@ import os
 from PIL import ImageFont, ImageDraw
 from PIL import Image
 
-
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -12,7 +11,8 @@ class DrawThings:
     def __init__(self):
         pass
 
-    def draw_rectangle(self,xy , image):
+    @staticmethod
+    def draw_rectangle(xy, image):
         draw = ImageDraw.Draw(image)
         '''
         coordinates = [(x1, y1), (x2, y2)]
@@ -42,12 +42,10 @@ class DrawThings:
             except:
                 logging.exception("Exception: ")
 
-
-
         return image
 
-
-    def draw_text(self,path, text):
+    @staticmethod
+    def draw_text(path, text):
         image = Image.open(path)
         draw = ImageDraw.Draw(image)
         font = ImageFont.truetype(ROOT_DIR + '/resources/arial.ttf', 40)

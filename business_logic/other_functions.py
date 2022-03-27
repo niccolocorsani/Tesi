@@ -3,6 +3,10 @@ from termcolor import colored
 from business_logic.vision import *
 from business_logic.draw_things import DrawThings
 from business_logic.main import detect_text
+import os
+import cv2
+import numpy as np
+from PIL import Image, ImageFilter
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -50,3 +54,10 @@ def compute_corrispondence_from_image_google_with_less_lines_of_code(folder_path
         except:
             rgb_im = image.convert('RGB')
             rgb_im.save(path_new_image)
+
+
+def convert_image_to_gray_scale(path_image_input, path_image_output):
+    image = Image.open(path_image_input)
+    # requires input image to be of mode = Grayscale (L)
+    image = image.convert("L")
+    image.save(path_image_output)
