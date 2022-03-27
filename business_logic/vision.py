@@ -4,8 +4,6 @@ import time
 import cv2
 import numpy as np
 from PIL import Image, ImageFilter
-from termcolor import colored
-import matplotlib.pyplot as plt
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
