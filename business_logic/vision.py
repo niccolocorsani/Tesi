@@ -1,5 +1,6 @@
 import os
 import cv2
+import matplotlib
 import numpy as np
 from PIL import Image, ImageFont, ImageDraw
 from matplotlib import pyplot as plt
