@@ -229,8 +229,8 @@ def analyze_image_and_show_with_for_loop(image_path):
             r, g, b = rgb_im.getpixel((x, y))
             values[x].append([r, g, b])
 
-    plt.imshow(values)
-    plt.show()
+    matplotlib.pyplot.imshow(values)
+    matplotlib.pyplot.show()
 
     print('fine')
 
@@ -305,8 +305,8 @@ def get_lines_end_points(image_path):
         # TODO mettere vincoli in maniera tale che valuti solo gli edge e non gli angoli.....
         # Di base l'idea è che va ridotto a 1 pixel la larghezza delle linee ecc..  Poi si nota che gli end point hanno un solo figlio, gli angoli invece ne hanno 2
         circle_img = cv2.circle(img, (x, y), 7, (255, 255, 0), -1)
-        plt.imshow(circle_img)
-        plt.show()
+        matplotlib.pyplot.imshow(circle_img)
+        matplotlib.pyplot.show()
 
         print(img[x][y])
         holes.append((x, y))
@@ -328,8 +328,8 @@ def get_line_testinggg(image_path):
     y = int((y1))
 
     circle_img = cv2.circle(img, (x, y), 7, (255, 255, 0), -1)
-    plt.imshow(circle_img)
-    plt.show()
+    matplotlib.pyplot.imshow(circle_img)
+    matplotlib.pyplot.show()
 
     for corner in holes:
         cv2.circle(img, (x, y), 7, (255, 255, 0), -1)
