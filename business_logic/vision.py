@@ -1,4 +1,5 @@
 import os
+import time
 import cv2
 import matplotlib
 import numpy as np
@@ -6,133 +7,6 @@ from PIL import Image, ImageFont, ImageDraw
 from matplotlib import pyplot as plt
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-
-# Not usefull
-def find_lines(path):
-    ### MAKING TEMPLATE WITHOUT HOUGH
-
-    # Read the image and make a copy then transform it to gray colorspace,
-    # threshold the image and search for contours.
-    img = cv2.imread(path)
-    res = img.copy()
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-    _, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
-
-    # Iterate through contours and draw a slightly bigger white rectangle
-    # over the contours that are not big enough (the text) on the copy of the image.
-    for i in contours:
-        cnt = cv2.contourArea(i)
-        if cnt < 500:
-            x, y, w, h = cv2.boundingRect(i)
-            cv2.rectangle(res, (x - 1, y - 1), (x + w + 1, y + h + 1), (255, 255, 255), -1)
-
-    # Display the result. Note that the image is allready the template!
-    cv2.imshow('res', res)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
-    # Optional count the rows and columns of the table
-    count = res.copy()
-    gray = cv2.cvtColor(count, cv2.COLOR_BGR2GRAY)
-    _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    _, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
-
-    check = []
-    for i in contours:
-        cnt = cv2.contourArea(i)
-        if 10000 > cnt > 10:
-            cv2.drawContours(count, [i], 0, (255, 255, 0), 2)
-            M = cv2.moments(i)
-            cx = int(M['m10'] / M['m00'])
-            cy = int(M['m01'] / M['m00'])
-            check.append([cx, cy])
-
-    check.sort(key=lambda xy: xy[1])
-    columns = 1
-
-    for i in range(0, len(check) - 1):
-        if check[i + 1][1] + 5 >= check[i][1] >= check[i + 1][1] - 5:
-            columns += 1
-        else:
-            break
-    print(columns)
-
-    check.sort(key=lambda tup: tup[0])
-    rows = 1
-    for i in range(0, len(check) - 1):
-        if check[i + 1][0] + 5 >= check[i][0] >= check[i + 1][0] - 5:
-            rows += 1
-        else:
-            break
-    print('Columns: ', columns)
-    print('Roiws : ', rows)
-
-    cv2.imshow('res', count)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
-    ### LINES WITH HOUGHLINES()
-
-    # Convert the resulting image from previous step (no text) to gray colorspace.
-    res2 = img.copy()
-    gray = cv2.cvtColor(res, cv2.COLOR_BGR2GRAY)
-
-    # You can either use threshold or Canny edge for HoughLines().
-    _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-    # edges = cv2.Canny(gray, 50, 150, apertureSize=3)
-
-    # Perform HoughLines tranform.
-    lines = cv2.HoughLines(thresh, 1, np.pi / 180, 200)
-    for line in lines:
-        for rho, theta in line:
-            a = np.cos(theta)
-            b = np.sin(theta)
-            x0 = a * rho
-            y0 = b * rho
-            x1 = int(x0 + 1000 * (-b))
-            y1 = int(y0 + 1000 * (a))
-            x2 = int(x0 - 1000 * (-b))
-            y2 = int(y0 - 1000 * (a))
-
-            cv2.line(res2, (x1, y1), (x2, y2), (0, 0, 255), 2)
-
-    # Display the result.
-    cv2.imshow('res', res)
-    cv2.imshow('res2', res2)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
-    ### LINES WITH HOUGHLINESP()
-
-    # Convert the resulting image from first step (no text) to gray colorspace.
-    res3 = img.copy()
-    gray = cv2.cvtColor(res, cv2.COLOR_BGR2GRAY)
-
-    # Use Canny edge detection and dilate the edges for better result.
-    edges = cv2.Canny(gray, 50, 150, apertureSize=3)
-    kernel = np.ones((4, 4), np.uint8)
-    dilation = cv2.dilate(edges, kernel, iterations=1)
-
-    # Perform HoughLinesP tranform.
-    minLineLength = 100
-    maxLineGap = 10
-    lines = cv2.HoughLinesP(dilation, 1, np.pi / 180, 50, minLineLength, maxLineGap)
-    for line in lines:
-        for x1, y1, x2, y2 in line:
-            cv2.line(res3, (x1, y1), (x2, y2), (0, 255, 0), 2)
-
-    # Display the result.
-    cv2.imwrite('h_res1.png', res)
-    cv2.imwrite('h_res2.png', res2)
-    cv2.imwrite('h_res3.png', res3)
-
-    cv2.imshow('res', res)
-    cv2.imshow('res2', res2)
-    cv2.imshow('res3', res3)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
 
 
 def find_lines2(path):
@@ -236,6 +110,90 @@ def analyze_image_and_show_with_for_loop(image_path):
     print('fine')
 
 
+def get_end_points(image_path):
+    # https://stackoverflow.com/questions/35847990/detect-holes-ends-and-beginnings-of-a-line-using-opencv
+    def getLandmarks(corners):
+        holes = []
+        for i in range(0, len(corners)):
+            x1, y1 = corners[i].ravel()
+            holes.append((int(x1), int(y1)))
+
+        return holes
+    img = cv2.imread(image_path, cv2.IMREAD_COLOR)
+    img_gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    corners = cv2.goodFeaturesToTrack(img_gray, 200, 0.05, 10)
+    holes = getLandmarks(corners)
+    print(holes)
+    ### Immagine bianca dove mettere cerchi ##
+    height, width, channels = img.shape
+    white_img = np.zeros([height, width, channels], dtype=np.uint8)
+    white_img.fill(255)  # or img[:] = 255
+    cv2.imwrite(ROOT_DIR + '/white_image.png', white_img)
+    white_image_with_circle = cv2.imread(ROOT_DIR + '/white_image.png')
+    ### Immagine bianca dove mettere cerchi ##
+    ### Metto i cerchi ##
+    for corner in holes:
+        cv2.circle(white_image_with_circle, (corner), 20, (0, 0, 0), -1)
+
+    plt.imshow(white_image_with_circle)
+    plt.show()
+    time.sleep(5)
+    ### Metto i cerchi ##
+    #### Contorni con solo cerchi
+    gray = cv2.cvtColor(white_image_with_circle, cv2.COLOR_BGR2GRAY)
+    _, threshold = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
+    contours, _ = cv2.findContours(
+        threshold, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    #### Contorni con solo cerchi
+    #### Contorni con solo linea
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    _, threshold = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
+    contours_lines, _ = cv2.findContours(
+        threshold, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    #### Contorni con solo linea
+    #### Nuova immagine dove saranno posizionati i cerchi a ogni iterazione per visualizzarli bene (anche se non serve)
+    new_img = np.zeros([height, width, channels], dtype=np.uint8)
+    new_img.fill(255)  # or img[:] = 255
+    cv2.imwrite(ROOT_DIR + '/new.png', new_img)
+    new_image_withe_to_show_in_for_loop_evolving_each_iteration = cv2.imread(ROOT_DIR + '/new.png')
+    #### Nuova immagine dove saranno posizionati i cerchi a ogni iterazione  per visualizzarli bene (anche se non serve)
+
+    img_copy = new_image_withe_to_show_in_for_loop_evolving_each_iteration.copy();
+    end_points_contours = []
+
+    i = 0
+    positions = []
+
+    for contour in contours:
+        intersection = get_number_of_intersection(img_copy, contour, contours_lines[1])
+        cv2.drawContours(new_image_withe_to_show_in_for_loop_evolving_each_iteration, [contour], 0, (0, 0, 255), 2)
+        cv2.drawContours(new_image_withe_to_show_in_for_loop_evolving_each_iteration, [contours_lines[1]], 0,
+                         (0, 0, 255), 2)
+        plt.imshow(new_image_withe_to_show_in_for_loop_evolving_each_iteration)
+        plt.show()
+        if (intersection == 4):
+            end_points_contours.append(contour)
+            positions.append(holes[i])
+
+        i = i + 1
+
+    return end_points_contours, new_image_withe_to_show_in_for_loop_evolving_each_iteration
+
+
+def find_center_of_contour(contours):
+
+    centers = []
+
+    for i in contours:
+        M = cv2.moments(i)
+        if M['m00'] != 0:
+            cx = int(M['m10'] / M['m00'])
+            cy = int(M['m01'] / M['m00'])
+            centers.append([cx, cy])
+
+    return centers
+
+
 def get_holes(image_path):
     # https://stackoverflow.com/questions/35847990/detect-holes-ends-and-beginnings-of-a-line-using-opencv
     def getLandmarks(corners):
@@ -259,100 +217,6 @@ def get_holes(image_path):
     cv2.waitKey(0)
 
 
-##TODO meglio cambiare strada, forse uno shape recognition è megliooooo da li se trova angoli vuol dire che non è un end-point
-## TODO o altrimenti guardare tipo di fare un rettangolo li vicino al punto e vedere se vi è un eventuale intersezione con questo rettangolo
-def get_lines_end_points(image_path):
-    img = cv2.imread(image_path, cv2.IMREAD_COLOR)
-    img_gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-    corners = cv2.goodFeaturesToTrack(img_gray, 200, 0.05, 10)
-    holes = []
-
-    for i in range(0, len(corners)):
-        x1, y1 = corners[i].ravel()
-        x = int((x1))
-        y = int((y1))
-
-        # TODO va ridotto tutto a 1 pixel per farlo funzionare
-        for i in range(100):
-            val = img[x][y]
-            val_dex = img[x + i][y]
-            val_up_dex = img[x + i][y + i]
-            val_up = img[x][y + i]
-            val_up_left = img[x - i][y + i]
-            val_left = img[x - i][y]
-            val_down_left = img[x - i][y - i]
-            val_down = img[x][y - i]
-            val_down_right = img[x + i][y - i]
-            print(i)
-
-            if (any(ele != 255 for ele in val) or any(ele != 255 for ele in val_dex) or any(
-                    ele != 255 for ele in val_up_dex) or any(ele != 255 for ele in val_up) or any(
-                ele != 255 for ele in val_up_left) or any(ele != 255 for ele in val_left) or any(
-                ele != 255 for ele in val_down_left) or any(ele != 255 for ele in val_down) or any(
-                ele != 255 for ele in val_down_right)):
-                print('oo')
-
-        break
-        val = img[x][y]
-        val_dex = img[x + 1][y]
-        val_up_dex = img[x + 1][y + 1]
-        val_up = img[x][y + 1]
-        val_up_left = img[x - 1][y + 1]
-        val_left = img[x - 1][y]
-        val_down_left = img[x - 1][y - 1]
-        val_down = img[x][y - 1]
-        val_down_right = img[x + 1][y - 1]
-
-        # TODO mettere vincoli in maniera tale che valuti solo gli edge e non gli angoli.....
-        # Di base l'idea è che va ridotto a 1 pixel la larghezza delle linee ecc..  Poi si nota che gli end point hanno un solo figlio, gli angoli invece ne hanno 2
-        circle_img = cv2.circle(img, (x, y), 7, (255, 255, 0), -1)
-        matplotlib.pyplot.imshow(circle_img)
-        matplotlib.pyplot.show()
-
-        print(img[x][y])
-        holes.append((x, y))
-
-    print(holes)
-
-    for corner in holes:
-        cv2.circle(img, (corner), 7, (255, 255, 0), -1)
-    cv2.imshow('img', img)
-    cv2.waitKey(0)
-def get_line_testinggg(image_path):
-    img = cv2.imread(image_path, cv2.IMREAD_COLOR)
-    img_gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-    corners = cv2.goodFeaturesToTrack(img_gray, 200, 0.05, 10)
-    holes = []
-
-    x1, y1 = corners[0].ravel()
-    x = int((x1))
-    y = int((y1))
-
-    circle_img = cv2.circle(img, (x, y), 7, (255, 255, 0), -1)
-    matplotlib.pyplot.imshow(circle_img)
-    matplotlib.pyplot.show()
-
-    for corner in holes:
-        cv2.circle(img, (x, y), 7, (255, 255, 0), -1)
-    cv2.imshow('img', img)
-    cv2.waitKey(0)
-def correct_image_to_really_all_white_and_black(image_path):
-    image = cv2.imread(image_path)
-    # image_inverted = (255 - image)
-    imagem = replace_rgb_values(image)
-
-    width, height, channels = image.shape
-    for x in range(width):
-        for y in range(height):
-            r, g, b = image[x, y]
-            if r != 255 and r != 0:
-                print(r)
-                print(image[x, y])
-
-    cv2.imwrite(ROOT_DIR + '/inverted_image.png', imagem)
-##TODO meglio cambiare strada, forse uno shape recognition è megliooooo da li se trova angoli vuol dire che non è un end-point
-
-
 def rgb_to_hex(r, g, b):
     return ('#{:X}{:X}{:X}').format(r, g, b)
 
@@ -370,6 +234,7 @@ def detect_shape(image_path):
     _, threshold = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
     contours, _ = cv2.findContours(
         threshold, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
     i = 0
     for contour in contours:
         # here we are ignoring first counter because
@@ -381,7 +246,7 @@ def detect_shape(image_path):
         approx = cv2.approxPolyDP(
             contour, 0.01 * cv2.arcLength(contour, True), True)
         # using drawContours() function
-        cv2.drawContours(img, [contour], 0, (0, 0, 255), 5)
+        cv2.drawContours(img, [contour], 0, (0, 0, 255), 2)
 
         # finding center point of shape
         M = cv2.moments(contour)
@@ -410,6 +275,8 @@ def detect_shape(image_path):
                         cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
 
         else:
+            print(i)
+            print('detected circle')
             cv2.putText(img, 'circle', (x, y),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
 
@@ -436,14 +303,55 @@ def replace_rgb_values(image):
     return image
 
 
-if __name__ == '__main__':
-    # plt.imshow([[[255, 0, 0],
-    #              [0, 0, 0]]])
-    #
-    # plt.show()
+def get_number_of_intersection(original_image, contour1, contour2):
+    # https://stackoverflow.com/questions/55641425/check-if-two-contours-intersect
+    # Two separate contours trying to check intersection on
+    contours = [contour1, contour2]
+    # Create image filled with zeros the same size of original image
+    blank = np.zeros(original_image.shape[0:2])
+    # Copy each contour into its own image and fill it with '1'
+    image1 = cv2.drawContours(blank.copy(), contours, 0, 1)  # colore nero primo contorno
+    image2 = cv2.drawContours(blank.copy(), contours, 1, 1)  # colore nero secondo contorno
+    # Use the logical AND operation on the two images
+    # Since the two images had bitwise and applied to it,
+    # there should be a '1' or 'True' where there was intersection
+    # and a '0' or 'False' where it didnt intersect
+    intersection = np.logical_and(image1, image2)
+    # Check if there was a '1' in the intersection
 
-    # correct_image_to_really_all_white_and_black(ROOT_DIR + '/disegno.png')
-    # get_line_testinggg(ROOT_DIR + '/inverted_image.png')
-    # get_holes(ROOT_DIR + '/oo.png')
-    # find_position_by_rgb_color_pil(ROOT_DIR + '/result.png', 10, 50, 243)
-    detect_shape(ROOT_DIR + '/disegno.png')
+    count = np.count_nonzero(intersection)
+    return count
+
+
+if __name__ == '__main__':
+    # detect_shape(ROOT_DIR + '/ttttt.png')
+
+    contours, img = get_end_points(ROOT_DIR + '/oooo-1.png')
+
+    height, width, channels = img.shape
+
+    new_img = np.zeros([height, width, channels], dtype=np.uint8)
+    new_img.fill(255)
+
+
+    positions = find_center_of_contour(contours)
+
+    print(len(contours))
+    print(len(positions))
+
+    check_positions_img = new_img.copy()
+
+    for position in positions:
+        cv2.circle(check_positions_img, (position), 20, (0, 0, 0), -1)
+        plt.imshow(check_positions_img)
+        plt.title('fina plot')
+        time.sleep(1)
+        plt.show()
+
+    check_contours_img = new_img.copy()
+    for contour in contours:
+        cv2.drawContours(check_contours_img, [contour], 0, (0, 0, 255), 2)
+        plt.imshow(check_contours_img)
+        plt.title('fina plot')
+        time.sleep(1)
+        plt.show()
