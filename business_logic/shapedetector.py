@@ -8,6 +8,8 @@ class ShapeDetector:
         peri = cv2.arcLength(c, True)
         approx = cv2.approxPolyDP(c, 0.04 * peri, True)
 
+
+
         shape = 'null'
 
         if len(approx) == 3:
