@@ -119,6 +119,7 @@ def get_end_points(image_path):
             holes.append((int(x1), int(y1)))
 
         return holes
+
     img = cv2.imread(image_path, cv2.IMREAD_COLOR)
     img_gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
     corners = cv2.goodFeaturesToTrack(img_gray, 200, 0.05, 10)
@@ -137,7 +138,7 @@ def get_end_points(image_path):
 
     plt.imshow(white_image_with_circle)
     plt.show()
-    time.sleep(5)
+    time.sleep(1)
     ### Metto i cerchi ##
     #### Contorni con solo cerchi
     gray = cv2.cvtColor(white_image_with_circle, cv2.COLOR_BGR2GRAY)
@@ -157,31 +158,30 @@ def get_end_points(image_path):
     cv2.imwrite(ROOT_DIR + '/new.png', new_img)
     new_image_withe_to_show_in_for_loop_evolving_each_iteration = cv2.imread(ROOT_DIR + '/new.png')
     #### Nuova immagine dove saranno posizionati i cerchi a ogni iterazione  per visualizzarli bene (anche se non serve)
-
     img_copy = new_image_withe_to_show_in_for_loop_evolving_each_iteration.copy();
     end_points_contours = []
 
-    i = 0
-    positions = []
-
+    ## convine fare un drawText nell'immagine sulle varie forme, così da riconoscerle successivamente.
+    # Inoltre conviene creare un dizionario con label relitive il testo che verra impresso sopra le
+    # immagini come Key e come value il valore del contorno
+    # Valutare direzione di come vengono salvati i contorni nella lista di contours
     for contour in contours:
         intersection = get_number_of_intersection(img_copy, contour, contours_lines[1])
         cv2.drawContours(new_image_withe_to_show_in_for_loop_evolving_each_iteration, [contour], 0, (0, 0, 255), 2)
         cv2.drawContours(new_image_withe_to_show_in_for_loop_evolving_each_iteration, [contours_lines[1]], 0,
                          (0, 0, 255), 2)
+
+        time.sleep(1)
+
         plt.imshow(new_image_withe_to_show_in_for_loop_evolving_each_iteration)
         plt.show()
-        if (intersection == 4):
+        if (intersection == 2):
             end_points_contours.append(contour)
-            positions.append(holes[i])
-
-        i = i + 1
 
     return end_points_contours, new_image_withe_to_show_in_for_loop_evolving_each_iteration
 
 
 def find_center_of_contour(contours):
-
     centers = []
 
     for i in contours:
@@ -324,15 +324,13 @@ def get_number_of_intersection(original_image, contour1, contour2):
 
 
 if __name__ == '__main__':
-    # detect_shape(ROOT_DIR + '/ttttt.png')
 
-    contours, img = get_end_points(ROOT_DIR + '/oooo-1.png')
+    contours, img = get_end_points(ROOT_DIR + '/molte_forme_need_for_git.png')
 
     height, width, channels = img.shape
 
     new_img = np.zeros([height, width, channels], dtype=np.uint8)
     new_img.fill(255)
-
 
     positions = find_center_of_contour(contours)
 
@@ -355,3 +353,5 @@ if __name__ == '__main__':
         plt.title('fina plot')
         time.sleep(1)
         plt.show()
+
+print('fine')
