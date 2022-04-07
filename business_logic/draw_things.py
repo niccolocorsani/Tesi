@@ -13,6 +13,8 @@ class DrawThings:
 
     @staticmethod
     def draw_rectangle(xy, image):
+
+
         draw = ImageDraw.Draw(image)
         '''
         coordinates = [(x1, y1), (x2, y2)]
@@ -27,7 +29,7 @@ class DrawThings:
                 --------------*
                               (x2, y2)
         '''
-        # ['(1,55)', '(76,53)', '(77,84)', '(2,86)'], il secondo è x2, y2 il quarto è x1,y1
+        # ['(1,55)', '(76,53)', '(77,84)', '(2,86)'], il secondo è (x2, y2) il quarto è (x1,y1)
 
         if xy is not None:
             try:

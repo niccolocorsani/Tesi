@@ -1,10 +1,10 @@
+import napkin
 import pandas as pd
 from termcolor import colored
 import xlsxwriter
 from business_logic.vision import *
 from business_logic.draw_things import DrawThings
-import logging
-import time
+
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -12,6 +12,10 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = ROOT_DIR + "/resources/google-aut
 
 
 def detect_text(path):
+    """
+
+    :rtype: return a dictionary where the keys are the text scanned and the values are the vertex of each detected text
+    """
     ##  https://cloud.google.com/vision/docs/ocr
     from google.cloud import vision  # pip install --upgrade google-cloud-vision (se ci sono problemi di import)
     import io
@@ -63,6 +67,9 @@ def write_on_excel(nome, nodo_ua, ua_data_type, nome_strumento, dv_path, funzion
 # 2) not implemented yet, should be the path of the excel file ecc....
 # This function depends on detect_text(path)
 ########## Cloruro Ferrico ferroso
+
+
+@napkin.seq_diagram()
 def compute_corrispondence_from_image_google_and_save_files(image_folder_path):
     draw_things = DrawThings()
 
@@ -181,4 +188,5 @@ def compute_corrispondence_from_image_google_and_save_files(image_folder_path):
 
 
 if __name__ == '__main__':
-    compute_corrispondence_from_image_google_and_save_files(ROOT_DIR + '/pagine')
+    pass
+#    compute_corrispondence_from_image_google_and_save_files(ROOT_DIR + '/pagine')

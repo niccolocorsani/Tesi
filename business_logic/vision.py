@@ -9,6 +9,12 @@ from matplotlib import pyplot as plt
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
+
+
+from pycallgraph import PyCallGraph
+from pycallgraph.output import GraphvizOutput
+
+
 def find_lines2(path):
     import cv2
 
@@ -62,7 +68,6 @@ def save_image_to_edged_black_on_white_background_and_return_vertex_of_white(pat
     # plt.show()
     return tuple(coordinates)
 
-
 def to_gray_scale(path_image_input, path_image_output):
     image = Image.open(path_image_input)
     image = image.convert("L")
@@ -95,19 +100,24 @@ def find_position_by_rgb_color_pil(image_path, red, green, blue):
 
 
 def analyze_image_and_show_with_for_loop(image_path):
-    values = []
-    im = Image.open(image_path)
-    rgb_im = im.convert('RGB')
-    for x in range(rgb_im.width):
-        values.append([])
-        for y in range(rgb_im.height):
-            r, g, b = rgb_im.getpixel((x, y))
-            values[x].append([r, g, b])
 
-    matplotlib.pyplot.imshow(values)
-    matplotlib.pyplot.show()
 
-    print('fine')
+
+ with PyCallGraph(output=GraphvizOutput()):
+
+        values = []
+        im = Image.open(image_path)
+        rgb_im = im.convert('RGB')
+        for x in range(rgb_im.width):
+            values.append([])
+            for y in range(rgb_im.height):
+                r, g, b = rgb_im.getpixel((x, y))
+                values[x].append([r, g, b])
+
+        matplotlib.pyplot.imshow(values)
+        matplotlib.pyplot.show()
+
+        print('fine')
 
 
 def get_end_points(image_path):
@@ -129,8 +139,8 @@ def get_end_points(image_path):
     height, width, channels = img.shape
     white_img = np.zeros([height, width, channels], dtype=np.uint8)
     white_img.fill(255)  # or img[:] = 255
-    cv2.imwrite(ROOT_DIR + '/white_image.png', white_img)
-    white_image_with_circle = cv2.imread(ROOT_DIR + '/white_image.png')
+    cv2.imwrite(ROOT_DIR + '/output_files/white_image.png', white_img)
+    white_image_with_circle = cv2.imread(ROOT_DIR + '/output_files/white_image.png')
     ### Immagine bianca dove mettere cerchi ##
     ### Metto i cerchi ##
     for corner in holes:
@@ -155,8 +165,8 @@ def get_end_points(image_path):
     #### Nuova immagine dove saranno posizionati i cerchi a ogni iterazione per visualizzarli bene (anche se non serve)
     new_img = np.zeros([height, width, channels], dtype=np.uint8)
     new_img.fill(255)  # or img[:] = 255
-    cv2.imwrite(ROOT_DIR + '/new.png', new_img)
-    new_image_withe_to_show_in_for_loop_evolving_each_iteration = cv2.imread(ROOT_DIR + '/new.png')
+    cv2.imwrite(ROOT_DIR + '/output_files/new.png', new_img)
+    new_image_withe_to_show_in_for_loop_evolving_each_iteration = cv2.imread(ROOT_DIR + '/output_files/new.png')
     #### Nuova immagine dove saranno posizionati i cerchi a ogni iterazione  per visualizzarli bene (anche se non serve)
     img_copy = new_image_withe_to_show_in_for_loop_evolving_each_iteration.copy();
     end_points_contours = []
@@ -177,6 +187,8 @@ def get_end_points(image_path):
         plt.show()
         if (intersection == 2):
             end_points_contours.append(contour)
+        if (intersection != 2 and intersection != 4 and intersection != 0): raise Exception("Intersection on circle with lines should be 2 or 4.............Intersection = " + str(intersection))
+
 
     return end_points_contours, new_image_withe_to_show_in_for_loop_evolving_each_iteration
 
@@ -234,6 +246,8 @@ def detect_shape(image_path):
     _, threshold = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
     contours, _ = cv2.findContours(
         threshold, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+
 
     i = 0
     for contour in contours:
@@ -303,6 +317,8 @@ def replace_rgb_values(image):
     return image
 
 
+
+
 def get_number_of_intersection(original_image, contour1, contour2):
     # https://stackoverflow.com/questions/55641425/check-if-two-contours-intersect
     # Two separate contours trying to check intersection on
@@ -323,9 +339,11 @@ def get_number_of_intersection(original_image, contour1, contour2):
     return count
 
 
+
 if __name__ == '__main__':
 
-    contours, img = get_end_points(ROOT_DIR + '/molte_forme_need_for_git.png')
+
+    contours, img = get_end_points(ROOT_DIR + '/senza_immagine.png')
 
     height, width, channels = img.shape
 
@@ -347,8 +365,10 @@ if __name__ == '__main__':
         plt.show()
 
     check_contours_img = new_img.copy()
+
+
     for contour in contours:
-        cv2.drawContours(check_contours_img, [contour], 0, (0, 0, 255), 2)
+        cv2.drawContours(check_contours_img, [contour], 0, (0, 255, 0), 2)
         plt.imshow(check_contours_img)
         plt.title('fina plot')
         time.sleep(1)
