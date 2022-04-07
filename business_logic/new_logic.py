@@ -10,7 +10,9 @@ ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = ROOT_DIR + "/resources/google-auth.json"
 
 
-def detect_text(path):
+#### Quando faccio draw, putText, anche se l'immagine è passata come riferimento.... L'immagine viene modificata..
+
+def detect_text(path_of_img):
     """
 
     :rtype: return a dictionary where the keys are the text scanned and the values are the vertex of each detected text
@@ -19,7 +21,7 @@ def detect_text(path):
     from google.cloud import vision  # pip install --upgrade google-cloud-vision (se ci sono problemi di import)
     import io
     client = vision.ImageAnnotatorClient()
-    with io.open(path, 'rb') as image_file:
+    with io.open(path_of_img, 'rb') as image_file:
         content = image_file.read()
 
     image = vision.Image(content=content)
@@ -178,7 +180,6 @@ def detect_text_of_folder_label_it(path_folder):
 
 
 def check_if_text_is_inside_contours(dic_of_output_of_detect_text, img, contours_of_squares=None):
-
     # # remove biggest contour (the one of all image)
     # contours_of_squares = sorted(contours_of_squares, key=cv2.contourArea, reverse=True)
     # contours_of_squares.pop(0)
@@ -202,10 +203,16 @@ def check_if_text_is_inside_contours(dic_of_output_of_detect_text, img, contours
                     # print('is not inside a contour')
                     cv2.rectangle(img, top_left, bottom_right, (255, 0, 0), 1)
                     dic_of_output_of_detect_text[img_name].pop(word)
+                    cv2.imwrite(ROOT_DIR + '/not_inside_contours/' + img_name, img)
                     plt.imshow(img)
                     plt.show()
 
     return dic_of_output_of_detect_text
+
+
+def give_semantic_to_nodes(dic_of_images_name_with_all_words_associated_with_it, img):
+    pass
+
 
 
 def get_inner_contour(img):
@@ -216,10 +223,10 @@ def get_inner_contour(img):
     return contours
 
 
+#### Rendere più generale le funzioni, così che prendano come input le immagini e non il folder, il for si fa nel main
 if __name__ == '__main__':
-
     #  original_img = cv2.imread(ROOT_DIR + '/gray_images/Schermata 2022-03-20 alle 14.18.23.png')
-    original_img = cv2.imread(ROOT_DIR + '/img.png')
+    original_img = cv2.imread(ROOT_DIR + '/gray_images/img.png')
 
     img_square = cv2.imread(ROOT_DIR + '/squares_image/ooo.png')
 
@@ -229,34 +236,39 @@ if __name__ == '__main__':
 
     contours_of_squares = get_inner_contour(img_resized_square)
 
-    # remove biggest contour (the one of all image) automaticamente -- se faccio "cmd option L" e ho questo formato di commento me lo lascia cosi
+    # remove biggest contour (the one of all image) qui non serve
     contours_of_squares = sorted(contours_of_squares, key=cv2.contourArea, reverse=True)
     # contours_of_squares.pop(0) In questo caso, stranamente non serve.....
     # remove biggest contour (the one of all image)
 
-    ### Le parole qui trovate a questo punto possono essere riscritte con il metodo put text nell'altre immagini
-    # prima di chiamare nuovamente ill metdo detect_text....
-    dic_of_squared_and_added_info_images_name_with_all_words_associated_with_it = detect_text_of_folder_label_it(
-        '/squares_image/')
+    ###TODO Le parole qui trovate a questo punto possono essere riscritte con il metodo put text nell'altre immagini
+    # prima di chiamare nuovamente ill metdo detect_text.... o trovare un altra soluzione
 
-    dic_of_original_images_name_with_all_words_associated_with_it = detect_text_of_folder_label_it('/gray_images/')
+    path_name = os.listdir(ROOT_DIR + '/gray_images/')
+    dic_of_original_images_name_with_all_words_associated_with_it = {}
 
-    n = 0
-    for contour in contours_of_squares:
-        n = n + 1
-        cv2.drawContours(original_img, [contour], 0,
-                         (0, 0, 255), 5)
-        center = find_center_of_one_contour(contour)
-        cv2.putText(original_img, str(n), center,
-                    cv2.FONT_HERSHEY_SIMPLEX, 4, (0, 255, 255), 2)
-        plt.imshow(original_img)
-        plt.show()
+    for images_names in path_name:
+        dic = detect_text(ROOT_DIR + '/gray_images/' + '/' + images_names)
+        dic_of_original_images_name_with_all_words_associated_with_it[images_names] = dic
+
+#### Da mettere in test
+cleaned_dic = check_if_text_is_inside_contours(dic_of_original_images_name_with_all_words_associated_with_it,
+                                               original_img,
+                                               contours_of_squares)
+
+n = 0
+for contour in contours_of_squares:
+    n = n + 1
+    cv2.drawContours(original_img, [contour], 0,
+                     (0, 0, 255), 5)
+    center = find_center_of_one_contour(contour)
+    cv2.putText(original_img, str(n), center,
+                cv2.FONT_HERSHEY_SIMPLEX, 4, (0, 255, 255), 2)
+
 
 plt.imshow(original_img)
 plt.show()
 
-#### Da mettere in test
-check_if_text_is_inside_contours(dic_of_original_images_name_with_all_words_associated_with_it, original_img,
-                                 contours_of_squares)
 print('fine')
+
 #### Da mettere in test

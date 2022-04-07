@@ -69,7 +69,6 @@ def write_on_excel(nome, nodo_ua, ua_data_type, nome_strumento, dv_path, funzion
 ########## Cloruro Ferrico ferroso
 
 
-@napkin.seq_diagram()
 def compute_corrispondence_from_image_google_and_save_files(image_folder_path):
     draw_things = DrawThings()
 
@@ -176,7 +175,7 @@ def compute_corrispondence_from_image_google_and_save_files(image_folder_path):
         ## Per risolverlo cambiare la funzione, che non è che a ogni iterazione fa il draw di un solo rettangolo, ma creare una nuova
         ## funzione dove gli viene passato una lista con tutti i rettangoli e li salva tutti insieme
 
-        path_new_image = ROOT_DIR + '/modified_images/' + path_names.replace('.jpg', '') + '_modified.jpg'
+        path_new_image = ROOT_DIR + '/output_files/' + path_names.replace('.jpg', '') + '_modified.jpg'
         try:
 
             image.save(path_new_image)
@@ -188,5 +187,5 @@ def compute_corrispondence_from_image_google_and_save_files(image_folder_path):
 
 
 if __name__ == '__main__':
-    pass
-#    compute_corrispondence_from_image_google_and_save_files(ROOT_DIR + '/pagine')
+
+    compute_corrispondence_from_image_google_and_save_files(ROOT_DIR + '/pagine')
