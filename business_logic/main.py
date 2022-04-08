@@ -1,4 +1,3 @@
-import napkin
 import pandas as pd
 from termcolor import colored
 import xlsxwriter
