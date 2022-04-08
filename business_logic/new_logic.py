@@ -256,6 +256,8 @@ cleaned_dic = check_if_text_is_inside_contours(dic_of_original_images_name_with_
                                                original_img,
                                                contours_of_squares)
 
+
+
 n = 0
 for contour in contours_of_squares:
     n = n + 1
