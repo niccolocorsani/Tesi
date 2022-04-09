@@ -67,7 +67,7 @@ def opencv_text_detection(path_of_img):
     import pytesseract
 
     # Mention the installed location of Tesseract-OCR in your system
-    pytesseract.pytesseract.tesseract_cmd = '/opt/homebrew/Cellar/tesseract/5.1.0/bin/tesseract'
+    #pytesseract.pytesseract.tesseract_cmd = '/opt/homebrew/Cellar/tesseract/5.1.0/bin/tesseract'
 
     # Read image from which text needs to be extracted
     img = cv2.imread(path_of_img)
@@ -319,18 +319,20 @@ if __name__ == '__main__':
 
     opencv_text_detection(ROOT_DIR + '/squares_image/img.png')
 
+    opencv_text_detection(ROOT_DIR + '/squares_image/img.png')
 
 
 
 for path_name in path_name_original_images:
 
-    ## Leggo immagini con STESSO nome
+    ## Leggo immagini con STESSO nome da cartelle: immagini originali e immagini modificate
     original_img = cv2.imread(ROOT_DIR + '/gray_images/' + path_name)
     original_with_nothing_to_debug = original_img.copy()
     img_square = cv2.imread(ROOT_DIR + '/squares_image/' + path_name)
     ## Ridimensiono le immagini con stessa dimensione (quadrati e originale)
     heigth_original_img, width_original_img, channels = original_img.shape
     img_resized_square = cv2.resize(img_square, (width_original_img, heigth_original_img))
+    # Riscrivo immagine modificata su cartella apposita per google, perchè 
     cv2.imwrite(ROOT_DIR + '/squares_for_google/' + path_name, img_resized_square)
 
     ## Prendo i contorni dei quadrati
