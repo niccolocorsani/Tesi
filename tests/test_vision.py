@@ -12,7 +12,7 @@ class VisionTestCase(unittest.TestCase):
     ####TODO appena torna l'internt
     def test_intersection_always_be_or_2_or_4_for_each_image_in_folder(self):
 
-        directory = './test_intersections_image'
+        directory = './tests/test_intersections_image'
 
         for filename in os.listdir(directory):
             f = os.path.join(directory, filename)

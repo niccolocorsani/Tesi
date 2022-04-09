@@ -12,6 +12,8 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = ROOT_DIR + "/resources/google-aut
 
 #### Quando faccio draw, putText, anche se l'immagine è passata come riferimento.... L'immagine viene modificata..
 
+
+## TODO raffinare algoritmo in modo che se due parole sono distanti meno di n pixel allora vanno nello stesso contorno
 def detect_text(path_of_img):
     """
 
@@ -36,7 +38,7 @@ def detect_text(path_of_img):
     for text in texts:
         if i == 0:
             i = i + 1
-            continue
+            continue ## TODO da rivedere
         my_list.append(text.description)
         vertices = ([(vertex.x, vertex.y)
                      for vertex in text.bounding_poly.vertices])
@@ -47,7 +49,88 @@ def detect_text(path_of_img):
             'https://cloud.google.com/apis/design/errors'.format(
                 response.error.message))
 
+    ####TO debug
+    immmm = cv2.imread(path_of_img)
+    for word in text_vertex_dic.keys():
+        top_left = text_vertex_dic[word][3]
+        bottom_right = text_vertex_dic[word][1]
+        cv2.rectangle(immmm, top_left, bottom_right, (255, 0, 0), 1)
+
+    ####TO debug
+    plt.imshow(immmm)
+    plt.show()
     return text_vertex_dic
+
+def opencv_text_detection(path_of_img):
+    # Import required packages
+    import cv2
+    import pytesseract
+
+    # Mention the installed location of Tesseract-OCR in your system
+    pytesseract.pytesseract.tesseract_cmd = '/opt/homebrew/Cellar/tesseract/5.1.0/bin/tesseract'
+
+    # Read image from which text needs to be extracted
+    img = cv2.imread(path_of_img)
+
+    # Preprocessing the image starts
+
+    # Convert the image to gray scale
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    # Performing OTSU threshold
+    ret, thresh1 = cv2.threshold(gray, 0, 255, cv2.THRESH_OTSU | cv2.THRESH_BINARY_INV)
+
+    # Specify structure shape and kernel size.
+    # Kernel size increases or decreases the area
+    # of the rectangle to be detected.
+    # A smaller value like (10, 10) will detect
+    # each word instead of a sentence.
+    rect_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (18, 18))
+
+    # Applying dilation on the threshold image
+    dilation = cv2.dilate(thresh1, rect_kernel, iterations=1)
+
+    # Finding contours
+    contours, hierarchy = cv2.findContours(dilation, cv2.RETR_EXTERNAL,
+                                           cv2.CHAIN_APPROX_NONE)
+
+    # Creating a copy of image
+    im2 = img.copy()
+
+    # A text file is created and flushed
+    file = open("recognized.txt", "w+")
+    file.write("")
+    file.close()
+
+    # Looping through the identified contours
+    # Then rectangular part is cropped and passed on
+    # to pytesseract for extracting text from it
+    # Extracted text is then written into the text file
+    i = 0
+    for cnt in contours:
+        x, y, w, h = cv2.boundingRect(cnt)
+
+        i = i + 1
+        # Drawing a rectangle on copied image
+        rect = cv2.rectangle(im2, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+        # Cropping the text block for giving input to OCR
+        cropped = im2[y:y + h, x:x + w]
+
+        # Open the file in append mode
+        file = open("recognized.txt", "a")
+
+        # Apply OCR on the cropped image
+        text = pytesseract.image_to_string(cropped)
+
+        # Appending the text into file
+        file.write(text)
+        file.write("\n")
+
+        # Close the file
+        file.close
+
+    return None
 
 
 def find_center_of_one_contour(contour):
@@ -141,44 +224,6 @@ def convert_all_path_images_to_edged_and_save_it(input_path, output_path):
         cv2.imwrite(ROOT_DIR + output_path + path_names, inverted_image)
 
 
-def detect_text_of_folder_label_it(path_folder):
-    # path_folder should be in format /pathhhh/
-    from google.cloud import vision  # pip install --upgrade google-cloud-vision (se ci sono problemi di import)
-    import io
-    client = vision.ImageAnnotatorClient()
-    ## input path should be  read_text_and_put_rectangle_over_it_on_original_img("/pagine_piu_pulite/",'/images_with_rectangle/')
-
-    path_name = os.listdir(ROOT_DIR + path_folder)
-
-    dic_path_name_sub_dic = {}
-
-    for path_names in path_name:
-        with io.open(ROOT_DIR + path_folder + path_names, 'rb') as image_file:
-            content = image_file.read()
-
-        image = vision.Image(content=content)
-        try:
-            response = client.text_detection(image=image)
-        except:
-            pass
-        texts = response.text_annotations
-        my_list = []
-        text_vertex_dic = {}
-        i = 0
-        for text in texts:
-            if i == 0:
-                i = i + 1
-                continue
-            my_list.append(text.description)
-            vertices = ([(vertex.x, vertex.y)
-                         for vertex in text.bounding_poly.vertices])
-            text_vertex_dic[text.description] = vertices
-
-        dic_path_name_sub_dic[path_names] = text_vertex_dic
-
-    return dic_path_name_sub_dic
-
-
 def check_if_text_is_inside_contours(dic_of_output_of_detect_text, img, contours_of_squares=None):
     # # remove biggest contour (the one of all image)
     # contours_of_squares = sorted(contours_of_squares, key=cv2.contourArea, reverse=True)
@@ -189,7 +234,6 @@ def check_if_text_is_inside_contours(dic_of_output_of_detect_text, img, contours
         dic_of_word = dic_of_output_of_detect_text[img_name].copy()
         for word in dic_of_word.copy().keys():
             last_contour = 0
-            print(word)
             for contour in contours_of_squares:
                 last_contour = last_contour + 1
                 top_left = dic_of_word[word][3]
@@ -199,20 +243,67 @@ def check_if_text_is_inside_contours(dic_of_output_of_detect_text, img, contours
                 if distance > -12:
                     break
                 if last_contour == len(contours_of_squares):
-                    # print(word)
-                    # print('is not inside a contour')
                     cv2.rectangle(img, top_left, bottom_right, (255, 0, 0), 1)
                     dic_of_output_of_detect_text[img_name].pop(word)
                     cv2.imwrite(ROOT_DIR + '/not_inside_contours/' + img_name, img)
-                    plt.imshow(img)
-                    plt.show()
 
     return dic_of_output_of_detect_text
 
 
-def give_semantic_to_nodes(dic_of_images_name_with_all_words_associated_with_it, img):
-    pass
+# {img_name: {node_name: list_of_words}...{node_name: list_of_words}}
+def give_semantic_to_nodes(dic_of_original_image_and_associated_words, dic_added_info,
+                           contours_of_squares, img_to_debug):
+    dic_node_elements = {}
+    node = 0
 
+    for img_name in dic_of_original_image_and_associated_words.copy().keys():
+        print(colored(img_name, 'red'))
+        dic_of_word = dic_of_original_image_and_associated_words[img_name].copy()
+        for contour in contours_of_squares:
+            last_word = 0
+            node = node + 1
+            # cv2.putText(img_to_debug, str(node), find_center_of_one_contour(contour),
+            #             cv2.FONT_HERSHEY_SIMPLEX, 4, (0, 255, 255), 2)
+            # cv2.drawContours(img_to_debug, [contour], 0,
+            #                  (0, 0, 255), 5)
+            # plt.imshow(img_to_debug)
+            # plt.show()
+
+            for word in dic_of_word.copy().keys():
+                last_word = last_word + 1
+                top_left = dic_of_word[word][3]
+                bottom_right = dic_of_word[word][1]
+                center_of_rectangle = find_center_of_rectangle(top_left, bottom_right)
+                distance = cv2.pointPolygonTest(contour, center_of_rectangle, True)
+                if distance > -12:
+                    if node not in dic_node_elements:  # check if key does not exist
+                        dic_node_elements[node] = []
+                    dic_node_elements[node].append(word)
+
+    node = 0
+
+    for img_name in dic_added_info.copy().keys():
+        print(colored(img_name, 'red'))
+        dic_of_word = dic_added_info[img_name].copy()
+        for contour in contours_of_squares:
+            last_word = 0
+            node = node + 1
+            for word in dic_of_word.copy().keys():
+
+                last_word = last_word + 1
+                top_left = dic_of_word[word][3]
+                bottom_right = dic_of_word[word][1]
+                center_of_rectangle = find_center_of_rectangle(top_left, bottom_right)
+                distance = cv2.pointPolygonTest(contour, center_of_rectangle, True)
+
+                if distance > -12:
+                    if node not in dic_node_elements:  # check if key does not exist
+                        dic_node_elements[node] = []
+                    dic_node_elements[node].append(word)
+                    print('added')
+                    print(word)
+
+    return dic_node_elements
 
 
 def get_inner_contour(img):
@@ -223,54 +314,55 @@ def get_inner_contour(img):
     return contours
 
 
-#### Rendere più generale le funzioni, così che prendano come input le immagini e non il folder, il for si fa nel main
 if __name__ == '__main__':
-    #  original_img = cv2.imread(ROOT_DIR + '/gray_images/Schermata 2022-03-20 alle 14.18.23.png')
-    original_img = cv2.imread(ROOT_DIR + '/gray_images/img.png')
+    path_name_original_images = os.listdir(ROOT_DIR + '/gray_images/')
 
-    img_square = cv2.imread(ROOT_DIR + '/squares_image/ooo.png')
+    opencv_text_detection(ROOT_DIR + '/squares_image/img.png')
 
+
+
+
+for path_name in path_name_original_images:
+
+    ## Leggo immagini con STESSO nome
+    original_img = cv2.imread(ROOT_DIR + '/gray_images/' + path_name)
+    original_with_nothing_to_debug = original_img.copy()
+    img_square = cv2.imread(ROOT_DIR + '/squares_image/' + path_name)
+    ## Ridimensiono le immagini con stessa dimensione (quadrati e originale)
     heigth_original_img, width_original_img, channels = original_img.shape
-
     img_resized_square = cv2.resize(img_square, (width_original_img, heigth_original_img))
+    cv2.imwrite(ROOT_DIR + '/squares_for_google/' + path_name, img_resized_square)
 
+    ## Prendo i contorni dei quadrati
     contours_of_squares = get_inner_contour(img_resized_square)
+    contours_of_squares = sorted(contours_of_squares, key=cv2.contourArea,
+                                 reverse=True)  # remove the biggest contour (the one of all image) qui non serve    # contours_of_squares.pop(0) In questo caso, stranamente non serve.....remove biggest contour (the one of all image)remove biggest contour (the one of all image)
 
-    # remove biggest contour (the one of all image) qui non serve
-    contours_of_squares = sorted(contours_of_squares, key=cv2.contourArea, reverse=True)
-    # contours_of_squares.pop(0) In questo caso, stranamente non serve.....
-    # remove biggest contour (the one of all image)
+    dic_of_original_image_and_associated_words = {path_name: detect_text(ROOT_DIR + '/gray_images/' + path_name)}
+    dic_of_squared_image_and_associated_words = {path_name: detect_text(ROOT_DIR + '/squares_for_google/' + path_name)}
 
-    ###TODO Le parole qui trovate a questo punto possono essere riscritte con il metodo put text nell'altre immagini
-    # prima di chiamare nuovamente ill metdo detect_text.... o trovare un altra soluzione
+    #### Da mettere in test
+    dic_of_original_image_and_associated_words = check_if_text_is_inside_contours(
+        dic_of_original_image_and_associated_words,
+        original_img,
+        contours_of_squares)
 
-    path_name = os.listdir(ROOT_DIR + '/gray_images/')
-    dic_of_original_images_name_with_all_words_associated_with_it = {}
+    n = 0
+    for contour in contours_of_squares:
+        n = n + 1
+        cv2.drawContours(original_img, [contour], 0,
+                         (0, 0, 255), 5)
+        center = find_center_of_one_contour(contour)
+        cv2.putText(original_img, str(n), center,
+                    cv2.FONT_HERSHEY_SIMPLEX, 4, (0, 255, 255), 2)
 
-    for images_names in path_name:
-        dic = detect_text(ROOT_DIR + '/gray_images/' + '/' + images_names)
-        dic_of_original_images_name_with_all_words_associated_with_it[images_names] = dic
+    # plt.imshow(original_img)
+    # plt.show()
+    #### Da mettere in test
 
-#### Da mettere in test
-cleaned_dic = check_if_text_is_inside_contours(dic_of_original_images_name_with_all_words_associated_with_it,
-                                               original_img,
-                                               contours_of_squares)
+    dic_img_nodes_semantic = {path_name: give_semantic_to_nodes(dic_of_original_image_and_associated_words,
+                                                                dic_of_squared_image_and_associated_words,
+                                                                contours_of_squares,
+                                                                original_with_nothing_to_debug)}
 
-
-
-n = 0
-for contour in contours_of_squares:
-    n = n + 1
-    cv2.drawContours(original_img, [contour], 0,
-                     (0, 0, 255), 5)
-    center = find_center_of_one_contour(contour)
-    cv2.putText(original_img, str(n), center,
-                cv2.FONT_HERSHEY_SIMPLEX, 4, (0, 255, 255), 2)
-
-
-plt.imshow(original_img)
-plt.show()
-
-print('fine')
-
-#### Da mettere in test
+    print('fine')
