@@ -94,6 +94,10 @@ def opencv_text_detection(path_of_img):
     contours, hierarchy = cv2.findContours(dilation, cv2.RETR_EXTERNAL,
                                            cv2.CHAIN_APPROX_NONE)
 
+
+
+
+
     # Creating a copy of image
     im2 = img.copy()
 
@@ -315,56 +319,52 @@ def get_inner_contour(img):
 
 
 if __name__ == '__main__':
+
+
     path_name_original_images = os.listdir(ROOT_DIR + '/gray_images/')
 
     opencv_text_detection(ROOT_DIR + '/squares_image/img.png')
 
-    opencv_text_detection(ROOT_DIR + '/squares_image/img.png')
+    for path_name in path_name_original_images:
 
+        ## Leggo immagini con STESSO nome da cartelle: immagini originali e immagini modificate
+        original_img = cv2.imread(ROOT_DIR + '/gray_images/' + path_name)
+        original_with_nothing_to_debug = original_img.copy()
+        img_square = cv2.imread(ROOT_DIR + '/squares_image/' + path_name)
+        ## Ridimensiono le immagini con stessa dimensione (quadrati e originale)
+        heigth_original_img, width_original_img, channels = original_img.shape
+        img_resized_square = cv2.resize(img_square, (width_original_img, heigth_original_img))
+        ## Riscrivo immagine modificata su cartella apposita per google, perchè la funzione detect_text accetta solo path come argomento
+        cv2.imwrite(ROOT_DIR + '/squares_for_google/' + path_name, img_resized_square)
+        ## Prendo i contorni dei quadrati
+        contours_of_squares = get_inner_contour(img_resized_square)
+        contours_of_squares = sorted(contours_of_squares, key=cv2.contourArea,
+                                     reverse=True)  # remove the biggest contour (the one of all image) qui non serve    # contours_of_squares.pop(0) In questo caso, stranamente non serve.....remove biggest contour (the one of all image)remove biggest contour (the one of all image)
+        ## creo dizionario formato: {img_name: {parola: coordinate_parola}}
+        dic_of_original_image_and_associated_words = {path_name: detect_text(ROOT_DIR + '/gray_images/' + path_name)}
+        dic_of_squared_image_and_associated_words = {path_name: detect_text(ROOT_DIR + '/squares_for_google/' + path_name)}
+        #### Da mettere in test
+        dic_of_original_image_and_associated_words = check_if_text_is_inside_contours(
+            dic_of_original_image_and_associated_words,
+            original_img,
+            contours_of_squares)
 
+        n = 0
+        for contour in contours_of_squares:
+            n = n + 1
+            cv2.drawContours(original_img, [contour], 0,
+                             (0, 0, 255), 5)
+            center = find_center_of_one_contour(contour)
+            cv2.putText(original_img, str(n), center,
+                        cv2.FONT_HERSHEY_SIMPLEX, 4, (0, 255, 255), 2)
 
-for path_name in path_name_original_images:
+        # plt.imshow(original_img)
+        # plt.show()
+        #### Da mettere in test
 
-    ## Leggo immagini con STESSO nome da cartelle: immagini originali e immagini modificate
-    original_img = cv2.imread(ROOT_DIR + '/gray_images/' + path_name)
-    original_with_nothing_to_debug = original_img.copy()
-    img_square = cv2.imread(ROOT_DIR + '/squares_image/' + path_name)
-    ## Ridimensiono le immagini con stessa dimensione (quadrati e originale)
-    heigth_original_img, width_original_img, channels = original_img.shape
-    img_resized_square = cv2.resize(img_square, (width_original_img, heigth_original_img))
-    # Riscrivo immagine modificata su cartella apposita per google, perchè 
-    cv2.imwrite(ROOT_DIR + '/squares_for_google/' + path_name, img_resized_square)
+        dic_img_nodes_semantic = {path_name: give_semantic_to_nodes(dic_of_original_image_and_associated_words,
+                                                                    dic_of_squared_image_and_associated_words,
+                                                                    contours_of_squares,
+                                                                    original_with_nothing_to_debug)}
 
-    ## Prendo i contorni dei quadrati
-    contours_of_squares = get_inner_contour(img_resized_square)
-    contours_of_squares = sorted(contours_of_squares, key=cv2.contourArea,
-                                 reverse=True)  # remove the biggest contour (the one of all image) qui non serve    # contours_of_squares.pop(0) In questo caso, stranamente non serve.....remove biggest contour (the one of all image)remove biggest contour (the one of all image)
-
-    dic_of_original_image_and_associated_words = {path_name: detect_text(ROOT_DIR + '/gray_images/' + path_name)}
-    dic_of_squared_image_and_associated_words = {path_name: detect_text(ROOT_DIR + '/squares_for_google/' + path_name)}
-
-    #### Da mettere in test
-    dic_of_original_image_and_associated_words = check_if_text_is_inside_contours(
-        dic_of_original_image_and_associated_words,
-        original_img,
-        contours_of_squares)
-
-    n = 0
-    for contour in contours_of_squares:
-        n = n + 1
-        cv2.drawContours(original_img, [contour], 0,
-                         (0, 0, 255), 5)
-        center = find_center_of_one_contour(contour)
-        cv2.putText(original_img, str(n), center,
-                    cv2.FONT_HERSHEY_SIMPLEX, 4, (0, 255, 255), 2)
-
-    # plt.imshow(original_img)
-    # plt.show()
-    #### Da mettere in test
-
-    dic_img_nodes_semantic = {path_name: give_semantic_to_nodes(dic_of_original_image_and_associated_words,
-                                                                dic_of_squared_image_and_associated_words,
-                                                                contours_of_squares,
-                                                                original_with_nothing_to_debug)}
-
-    print('fine')
+        print('fine')
