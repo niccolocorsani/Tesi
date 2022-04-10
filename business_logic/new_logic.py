@@ -12,17 +12,10 @@ import pytesseract
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = ROOT_DIR + "/resources/google-auth.json"
 
-import re
-
-
-def check_name(name: str):
-    return re.match(r"^[\-'a-zA-Z ]+$", name) is not None
 
 
 #### Quando faccio draw, putText, anche se l'immagine è passata come riferimento.... L'immagine viene modificata..
-
 def detect_text_best_accuracy(path_of_img):
-
     dic_opencv = detect_text_opencv(path_of_img)
 
     dic_google = detect_text(path_of_img)
@@ -30,7 +23,6 @@ def detect_text_best_accuracy(path_of_img):
     new_dic = merge_two_dictionaies(dic_opencv, dic_google)
 
     return new_dic
-
 
 
 ## TODO raffinare algoritmo in modo che se due parole sono distanti meno di n pixel allora vanno nello stesso contorno
@@ -62,7 +54,7 @@ def detect_text(path_of_img):
         my_list.append(text.description)
         vertices = ([(vertex.x, vertex.y)
                      for vertex in text.bounding_poly.vertices])
-        text_vertex_dic[text.description] = vertices
+        text_vertex_dic[text.description.lower()] = vertices
     if response.error.message:
         raise Exception(
             '{}\nFor more info on error messages, check: '
@@ -96,7 +88,7 @@ def detect_text_opencv(path_of_img):
 
     for i in range(n_boxes):
 
-        text = d['text'][i]
+        text = d['text'][i].lower()
         if len(d['text'][i]) != 0 and d['text'][i] != ' ' and d['text'][i] != '—_|':
             (x, y, w, h) = (d['left'][i], d['top'][i], d['width'][i], d['height'][i])
 
@@ -116,8 +108,8 @@ def detect_text_opencv(path_of_img):
 
 
 def merge_two_dictionaies(google_dic, cv2_dic):
-    merged_dic = google_dic.copy()  # start with keys and values of x
-    merged_dic.update(cv2_dic)
+    merged_dic = cv2_dic.copy()
+    merged_dic.update(google_dic)
     return merged_dic
 
 
@@ -303,15 +295,14 @@ def get_inner_contour(img):
 
 
 if __name__ == '__main__':
+
     path_name_original_images = os.listdir(ROOT_DIR + '/gray_images/')
 
-
-
-    print('do')
-
-    # mergiare l'output di google con quello di tesseract
-
-    print('fine')
+    lines = ['Readme', 'How to write text files in Python']
+    with open(ROOT_DIR + 'altair_semantic.txt', 'w') as f:
+        for line in lines:
+            f.write(line)
+            f.write('\n')
 
     for path_name in path_name_original_images:
 
@@ -331,13 +322,12 @@ if __name__ == '__main__':
         ## creo dizionario formato: {img_name: {parola: coordinate_parola}}
         dic_of_original_image_and_associated_words = {path_name: detect_text(ROOT_DIR + '/gray_images/' + path_name)}
         dic_of_squared_image_and_associated_words = {
-            path_name: detect_text(ROOT_DIR + '/squares_for_google/' + path_name)}
+            path_name: detect_text_best_accuracy(ROOT_DIR + '/squares_for_google/' + path_name)}
         #### Da mettere in test
         dic_of_original_image_and_associated_words = check_if_text_is_inside_contours(
             dic_of_original_image_and_associated_words,
             original_img,
             contours_of_squares)
-
         n = 0
         for contour in contours_of_squares:
             n = n + 1
@@ -346,7 +336,6 @@ if __name__ == '__main__':
             center = find_center_of_one_contour(contour)
             cv2.putText(original_img, str(n), center,
                         cv2.FONT_HERSHEY_SIMPLEX, 4, (0, 255, 255), 2)
-
         # plt.imshow(original_img)
         # plt.show()
         #### Da mettere in test
@@ -355,5 +344,16 @@ if __name__ == '__main__':
                                                                     dic_of_squared_image_and_associated_words,
                                                                     contours_of_squares,
                                                                     original_with_nothing_to_debug)}
+
+        lines = ['Readme', 'How to write text files in Python']
+        with open(ROOT_DIR + 'altair_semantic.txt', 'w') as f:
+            for line in lines:
+                f.write(line)
+                f.write('\n')
+
+
+
+
+
 
         print('fine')
