@@ -4,13 +4,33 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 import cv2
+from pytesseract import Output
 from termcolor import colored
+# Import required packages
+import pytesseract
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = ROOT_DIR + "/resources/google-auth.json"
 
+import re
+
+
+def check_name(name: str):
+    return re.match(r"^[\-'a-zA-Z ]+$", name) is not None
+
 
 #### Quando faccio draw, putText, anche se l'immagine è passata come riferimento.... L'immagine viene modificata..
+
+def detect_text_best_accuracy(path_of_img):
+
+    dic_opencv = detect_text_opencv(path_of_img)
+
+    dic_google = detect_text(path_of_img)
+
+    new_dic = merge_two_dictionaies(dic_opencv, dic_google)
+
+    return new_dic
+
 
 
 ## TODO raffinare algoritmo in modo che se due parole sono distanti meno di n pixel allora vanno nello stesso contorno
@@ -38,7 +58,7 @@ def detect_text(path_of_img):
     for text in texts:
         if i == 0:
             i = i + 1
-            continue ## TODO da rivedere
+            continue  ## TODO da rivedere
         my_list.append(text.description)
         vertices = ([(vertex.x, vertex.y)
                      for vertex in text.bounding_poly.vertices])
@@ -61,80 +81,44 @@ def detect_text(path_of_img):
     plt.show()
     return text_vertex_dic
 
-def opencv_text_detection(path_of_img):
-    # Import required packages
-    import cv2
-    import pytesseract
 
-    # Mention the installed location of Tesseract-OCR in your system
-    #pytesseract.pytesseract.tesseract_cmd = '/opt/homebrew/Cellar/tesseract/5.1.0/bin/tesseract'
-
+def detect_text_opencv(path_of_img):
     # Read image from which text needs to be extracted
     img = cv2.imread(path_of_img)
-
-    # Preprocessing the image starts
-
-    # Convert the image to gray scale
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    # Performing OTSU threshold
-    ret, thresh1 = cv2.threshold(gray, 0, 255, cv2.THRESH_OTSU | cv2.THRESH_BINARY_INV)
-
-    # Specify structure shape and kernel size.
-    # Kernel size increases or decreases the area
-    # of the rectangle to be detected.
-    # A smaller value like (10, 10) will detect
-    # each word instead of a sentence.
-    rect_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (18, 18))
-
-    # Applying dilation on the threshold image
-    dilation = cv2.dilate(thresh1, rect_kernel, iterations=1)
-
-    # Finding contours
-    contours, hierarchy = cv2.findContours(dilation, cv2.RETR_EXTERNAL,
-                                           cv2.CHAIN_APPROX_NONE)
-
-
-
-
-
-    # Creating a copy of image
     im2 = img.copy()
 
-    # A text file is created and flushed
-    file = open("recognized.txt", "w+")
-    file.write("")
-    file.close()
+    text_vertex_dic = {}
 
-    # Looping through the identified contours
-    # Then rectangular part is cropped and passed on
-    # to pytesseract for extracting text from it
-    # Extracted text is then written into the text file
-    i = 0
-    for cnt in contours:
-        x, y, w, h = cv2.boundingRect(cnt)
+    d = pytesseract.image_to_data(gray, output_type=Output.DICT)
+    n_boxes = len(d['level'])
 
-        i = i + 1
-        # Drawing a rectangle on copied image
-        rect = cv2.rectangle(im2, (x, y), (x + w, y + h), (0, 255, 0), 2)
+    for i in range(n_boxes):
 
-        # Cropping the text block for giving input to OCR
-        cropped = im2[y:y + h, x:x + w]
+        text = d['text'][i]
+        if len(d['text'][i]) != 0 and d['text'][i] != ' ' and d['text'][i] != '—_|':
+            (x, y, w, h) = (d['left'][i], d['top'][i], d['width'][i], d['height'][i])
 
-        # Open the file in append mode
-        file = open("recognized.txt", "a")
+            bottom_left = (x, y)
+            bottom_right = (x + w, y)
+            top_right = (x + w, y + h)
+            top_left = (x, y + h)
 
-        # Apply OCR on the cropped image
-        text = pytesseract.image_to_string(cropped)
+            text_vertex_dic[text] = [bottom_left, bottom_right, top_right, top_left]
+            cv2.rectangle(im2, top_left, bottom_right, (255, 0, 0), 2)
+            center = find_center_of_rectangle(top_left, bottom_right)
+            cv2.circle(im2, (center), 10, (0, 0, 255), -1)
+    plt.imshow(im2)
+    plt.show()
 
-        # Appending the text into file
-        file.write(text)
-        file.write("\n")
+    return text_vertex_dic
 
-        # Close the file
-        file.close
 
-    return None
+def merge_two_dictionaies(google_dic, cv2_dic):
+    merged_dic = google_dic.copy()  # start with keys and values of x
+    merged_dic.update(cv2_dic)
+    return merged_dic
 
 
 def find_center_of_one_contour(contour):
@@ -319,11 +303,15 @@ def get_inner_contour(img):
 
 
 if __name__ == '__main__':
-
-
     path_name_original_images = os.listdir(ROOT_DIR + '/gray_images/')
 
-    opencv_text_detection(ROOT_DIR + '/squares_image/img.png')
+
+
+    print('do')
+
+    # mergiare l'output di google con quello di tesseract
+
+    print('fine')
 
     for path_name in path_name_original_images:
 
@@ -342,7 +330,8 @@ if __name__ == '__main__':
                                      reverse=True)  # remove the biggest contour (the one of all image) qui non serve    # contours_of_squares.pop(0) In questo caso, stranamente non serve.....remove biggest contour (the one of all image)remove biggest contour (the one of all image)
         ## creo dizionario formato: {img_name: {parola: coordinate_parola}}
         dic_of_original_image_and_associated_words = {path_name: detect_text(ROOT_DIR + '/gray_images/' + path_name)}
-        dic_of_squared_image_and_associated_words = {path_name: detect_text(ROOT_DIR + '/squares_for_google/' + path_name)}
+        dic_of_squared_image_and_associated_words = {
+            path_name: detect_text(ROOT_DIR + '/squares_for_google/' + path_name)}
         #### Da mettere in test
         dic_of_original_image_and_associated_words = check_if_text_is_inside_contours(
             dic_of_original_image_and_associated_words,
