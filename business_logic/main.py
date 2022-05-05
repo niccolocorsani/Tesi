@@ -1,9 +1,9 @@
 import pandas as pd
 from termcolor import colored
 import xlsxwriter
-from business_logic.vision import *
-from business_logic.draw_things import DrawThings
-
+from not_for_thesis.vision import *
+from not_for_thesis.draw_things import DrawThings
+from business_logic.new_logic.new_logic import detect_text as new_logic_detect_text
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -35,6 +35,7 @@ def detect_text(path):
         if i == 0:
             i = i + 1
             continue
+        print(text.description)
         my_list.append(text.description)
         vertices = (['({},{})'.format(vertex.x, vertex.y)
                      for vertex in text.bounding_poly.vertices])
@@ -85,7 +86,6 @@ def compute_corrispondence_from_image_google_and_save_files(image_folder_path):
     df = pd.read_excel(ROOT_DIR + '/input_files/altair.xlsx', sheet_name="Cloruro Ferrico std")
     list_cloruro_ferrico_std = df.values.tolist()
     path_name = os.listdir(ROOT_DIR + "/pagine")
-
     for path_names in path_name:
         print(colored(path_names, 'red'))
         text_vertex_dic = detect_text(image_folder_path + "/" + path_names)
@@ -187,4 +187,34 @@ def compute_corrispondence_from_image_google_and_save_files(image_folder_path):
 
 if __name__ == '__main__':
 
-    compute_corrispondence_from_image_google_and_save_files(ROOT_DIR + '/pagine')
+
+    path_name_original_images = os.listdir(ROOT_DIR + '/drive_gray/')
+
+
+##TODO verificare svg del tizio per con slide foto dcs per capire se ho messo semantica come lui
+##TODO verificare svg del tizio per con slide foto dcs per capire se ho messo semantica come lui
+##TODO verificare svg del tizio per con slide foto dcs per capire se ho messo semantica come lui
+##TODO verificare svg del tizio per con slide foto dcs per capire se ho messo semantica come lui
+
+
+
+    word1 = 'KCL'
+    word2 = 'R-2001'
+    word3 = 'R2001'
+    word4 = 'R2003'
+    word5 = 'FI076'
+    word6 = 'FIC071'
+
+
+    for path_name in path_name_original_images:
+        img = cv2.imread(ROOT_DIR + '/drive_gray/' +path_name)
+        print(colored(path_name,'red'))
+        word_vertex = new_logic_detect_text(ROOT_DIR + '/drive_gray/' +path_name)
+        for word in word_vertex.keys():
+            if word6 in word or word5 in word or word4 in word or word3 in word or word2 in word or word1 in word:
+                print('found '+ word)
+                top_left = word_vertex[word][3]
+                bottom_right = word_vertex[word][1]
+                cv2.rectangle(img, top_left, bottom_right, (255, 0, 0), 1)
+                cv2.imwrite(ROOT_DIR + '/drive_gray_with_rectangle_google/' +path_name,img)
+

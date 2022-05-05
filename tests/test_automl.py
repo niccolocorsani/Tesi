@@ -1,7 +1,3 @@
-import pytest
-import sys
-from business_logic.automl import get_prediction
-
 # def test_get_prediction():
 #     with open(ROOT_DIR + '/pagine/CPS R4002.jpg', 'rb') as ff:
 #         content = ff.read()

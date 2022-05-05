@@ -1,8 +1,7 @@
 import unittest
 
 import os
-from business_logic.vision import save_image_to_edged_black_on_white_background_and_return_vertex_of_white, \
-    get_end_points
+from not_for_thesis.vision import get_end_points
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 

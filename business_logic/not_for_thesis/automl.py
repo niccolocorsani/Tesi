@@ -1,8 +1,7 @@
 import os
 import cv2
 from google.cloud import automl_v1beta1  # pip install --upgrade google-cloud-automl
-from termcolor import colored
-from business_logic.draw_things import DrawThings
+from not_for_thesis.draw_things import DrawThings
 
 from PIL import Image
 

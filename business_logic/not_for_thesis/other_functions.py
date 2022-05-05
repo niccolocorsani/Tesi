@@ -1,21 +1,19 @@
 import pandas as pd
 from termcolor import colored
-from business_logic.vision import *
-from business_logic.draw_things import DrawThings
+from not_for_thesis.vision import *
+from not_for_thesis.draw_things import DrawThings
 from business_logic.main import detect_text
 import os
-import cv2
-import numpy as np
-from PIL import Image, ImageFilter
+from PIL import Image
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = ROOT_DIR + "/resources/google-auth.json"
 
-#Both paths are realative to the root paths
-#Folder path is the path of the images, excel_path is the path of the excel
-def compute_corrispondence_from_image_google_with_less_lines_of_code(folder_path,excel_path):
 
+# Both paths are realative to the root paths
+# Folder path is the path of the images, excel_path is the path of the excel
+def compute_corrispondence_from_image_google_with_less_lines_of_code(folder_path, excel_path):
     draw_things = DrawThings()
     xl = pd.ExcelFile(ROOT_DIR + excel_path)
     sheet_names = xl.sheet_names
@@ -27,7 +25,7 @@ def compute_corrispondence_from_image_google_with_less_lines_of_code(folder_path
             print(colored(path_names, 'red'))
             text_vertex_dic = detect_text(folder_path + "/" + path_names)
             all_words_of_image = text_vertex_dic.keys()
-           # print(colored(all_words_of_image, 'green'))
+            # print(colored(all_words_of_image, 'green'))
             image = Image.open(ROOT_DIR + folder_path + path_names)
             for word in all_words_of_image:
                 if len(word) < 3: continue
@@ -56,8 +54,13 @@ def compute_corrispondence_from_image_google_with_less_lines_of_code(folder_path
             rgb_im.save(path_new_image)
 
 
-def convert_image_to_gray_scale(path_image_input, path_image_output):
-    image = Image.open(path_image_input)
-    # requires input image to be of mode = Grayscale (L)
-    image = image.convert("L")
-    image.save(path_image_output)
+
+
+
+if __name__ == '__main__':
+
+    path_name_original_images = os.listdir(ROOT_DIR + '/drive/')
+
+
+
+
