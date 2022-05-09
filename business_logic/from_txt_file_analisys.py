@@ -17,9 +17,12 @@ def generate_lines(list_of_lines, img_name):
     print(colored(img_name, 'green'))
     for string_pattern in list_of_lines:
 
-
         try:
             string_pattern = string_pattern.replace('\n','').lower()
+
+            if 'azoto' in string_pattern and '4002' in  img_name:
+                print('stop')
+
             node_type = ''
             node_name = ''
             end = ''
@@ -40,7 +43,7 @@ def generate_lines(list_of_lines, img_name):
                     node_type = 'exit'
                     elements = string_pattern.split(',')
                     node_name = elements[0]
-                    end = elements[1]
+                    if len(elements) > 1: end = elements[1]
                     if '+' in string_pattern:  ##  exit puo avere più end
                         node_type = 'normal_multiple_end'
                         node_name = elements[0]
@@ -72,6 +75,8 @@ def generate_lines(list_of_lines, img_name):
                     measure_of = elements[1]
                     if len(elements) > 2:
                         type = elements[2]  ## può non essere specificato
+
+
 
             ##clean and invariant exception
 
@@ -119,6 +124,7 @@ def generate_lines(list_of_lines, img_name):
                 edges_csv.append('Flusso_' + str(flusso_num) + ';Class;Flow;')
                 edges_csv.append('Flusso_' + str(flusso_num) + ';ObjectProperty;startIn;' + end)
                 edges_csv.append('Flusso_' + str(flusso_num) + ';ObjectProperty;endIn;' + node_name)
+                if end == '': raise Exception("Exit not should be at least an end of 1 node")
 
                 flusso_num = flusso_num + 1
             if node_type == 'normal_multiple_end':
@@ -136,7 +142,6 @@ def generate_lines(list_of_lines, img_name):
                     type = 'percentage'
                 measures_csv.append(node_name + ';Class;Sensor;')
                 measures_csv.append(type + ';Class;UnitOfMeasure;')
-
                 measures_csv.append(node_name + ';ObjectProperty;canMeasureIn;' + type)
                 measures_csv.append(node_name + ';ObjectProperty;isContainedIn;' + measure_of)
 
@@ -149,6 +154,9 @@ def generate_lines(list_of_lines, img_name):
                 measures_csv.append(node_name + ';ObjectProperty;canMeasureIn;' + type)
                 for measure in measures:
                     measures_csv.append(node_name + ';ObjectProperty;isContainedIn;' + measure)
+
+
+
         except Exception as ex:
             print(colored(string_pattern, 'red'))
             print(ex)
