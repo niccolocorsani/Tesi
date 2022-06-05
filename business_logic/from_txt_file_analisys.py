@@ -8,8 +8,6 @@ ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def generate_lines(list_of_lines, img_name):
-
-
     nodes_csv = []
     edges_csv = []
     measures_csv = []
@@ -18,10 +16,7 @@ def generate_lines(list_of_lines, img_name):
     for string_pattern in list_of_lines:
 
         try:
-            string_pattern = string_pattern.replace('\n','').lower()
-
-            if 'azoto' in string_pattern and '4002' in  img_name:
-                print('stop')
+            string_pattern = string_pattern.replace('\n', '').lower()
 
             node_type = ''
             node_name = ''
@@ -52,7 +47,8 @@ def generate_lines(list_of_lines, img_name):
                 else:  ## Nodo normale con più end
                     if len(elements) == 1:
                         raise Exception("Should be a start maybe!!")
-                    if '+' in elements[1]:  ## TODO qui con un nodo tipo NODE:cl2 va in exception dicendo elemnts[1] out of bound
+                    if '+' in elements[
+                        1]:  ## TODO qui con un nodo tipo NODE:cl2 va in exception dicendo elemnts[1] out of bound
                         node_type = 'normal_multiple_end'
                         node_name = elements[0]
                         bad_ends = elements[1].split('+')
@@ -75,8 +71,6 @@ def generate_lines(list_of_lines, img_name):
                     measure_of = elements[1]
                     if len(elements) > 2:
                         type = elements[2]  ## può non essere specificato
-
-
 
             ##clean and invariant exception
 
@@ -162,14 +156,10 @@ def generate_lines(list_of_lines, img_name):
             print(ex)
             continue
 
-
-
     return nodes_csv, edges_csv, measures_csv
 
 
-
 def read_from_file_and_place_in_list(path):
-
     lines = []
     with open(path) as f:
         for line in f.readlines():
@@ -178,9 +168,8 @@ def read_from_file_and_place_in_list(path):
 
     return lines
 
+
 if __name__ == '__main__':
-
-
 
     path_name_original_images = os.listdir(ROOT_DIR + '/squares_image/')
 
@@ -194,16 +183,23 @@ if __name__ == '__main__':
     else:
         print("The file does not exist")
 
+    if os.path.exists(ROOT_DIR + '/all_csv/' + 'all-nodes.txt'):
+        os.remove(ROOT_DIR + '/all_csv/' + 'all-nodes.txt')
+    else:
+        print("The file does not exist")
 
+    if os.path.exists(ROOT_DIR + '/all_csv/' + 'all-measures.txt'):
+        os.remove(ROOT_DIR + '/all_csv/' + 'all-measures.txt')
+    else:
+        print("The file does not exist")
 
     path_name_original_images = os.listdir(ROOT_DIR + '/images_txt/')
     lines = []
 
-
     for path_name in path_name_original_images:
 
-        lines = read_from_file_and_place_in_list(ROOT_DIR + '/images_txt/' +path_name)
-        nodes_csv, edges_csv, measures_csv = generate_lines(lines,path_name)
+        lines = read_from_file_and_place_in_list(ROOT_DIR + '/images_txt/' + path_name)
+        nodes_csv, edges_csv, measures_csv = generate_lines(lines, path_name)
 
         specify_physical_object(nodes_csv)
 
@@ -214,6 +210,46 @@ if __name__ == '__main__':
         all_exits = []
         exits = get_all_exits(nodes_csv)
         all_exits.extend(exits)
+
+
+
+        f5 = open(ROOT_DIR + '/all_csv/' + 'all-measures.txt', 'a')
+        f5.write('\n')
+        f5.write('---')
+        f5.write('\n')
+        f5.write('---')
+        f5.write('\n')
+        f5.write(path_name)
+        f5.write('\n')
+        f5.write('---')
+        f5.write('\n')
+        f5.write('---')
+        f5.write('\n')
+        for element in measures_csv:
+            f5.write(element)
+            f5.write('\n')
+
+
+
+
+
+
+
+        f4 = open(ROOT_DIR + '/all_csv/' + 'all-nodes.txt', 'a')
+        f4.write('\n')
+        f4.write('---')
+        f4.write('\n')
+        f4.write('---')
+        f4.write('\n')
+        f4.write(path_name)
+        f4.write('\n')
+        f4.write('---')
+        f4.write('\n')
+        f4.write('---')
+        f4.write('\n')
+        for element in nodes_csv:
+            f4.write(element)
+            f4.write('\n')
 
         f2 = open(ROOT_DIR + '/all_csv/' + 'all-starts.txt', 'a')
         f2.write('\n')
@@ -276,6 +312,3 @@ if __name__ == '__main__':
             print(ex)
 
     print('fine.........')
-
-
-
